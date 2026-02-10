@@ -11,12 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('gates', function (Blueprint $table) {
+        Schema::create('gate_unavailabilities', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('code')->unique();
+
+            $table->foreignId('gate_id')->constrained('gates')->cascadeOnDelete();
+
+            $table->dateTime('start_at');
+            $table->dateTime('end_at');
+
+            $table->string('reason')->nullable();
+
             $table->timestamps();
         });
-        // @todo check if a terminal might be nice to have
     }
 
     /**
@@ -24,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('gates');
+        Schema::dropIfExists('gate_unavailabilities');
     }
 };
