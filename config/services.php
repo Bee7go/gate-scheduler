@@ -43,4 +43,8 @@ return [
         'client_secret' => env('OPENSKY_CLIENT_SECRET'),
     ],
 
+    'gates' => [
+        'occupation_minutes' => env('GATE_OCCUPATION_TIME'),
+    ],
+
 ];
