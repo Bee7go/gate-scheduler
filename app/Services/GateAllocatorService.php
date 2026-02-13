@@ -15,22 +15,14 @@ class GateAllocatorService
      */
     public function __construct(
         private readonly GateAvailabilityService $availabilityService,
-        private ?GateSelectionStrategyInterface $gateSelectionStrategy = null
+        private readonly GateSelectionStrategyInterface $gateSelectionStrategy
     ) {
-        $this->gateSelectionStrategy = $this->getGateSelectionStrategy();
     }
 
-    // @todo asta se poate muta intr-un binding
-    private function getGateSelectionStrategy(): GateSelectionStrategyInterface
-    {
-        $allocationStrategy = config('services.gates.allocation_strategy');
-        Log::info('------Gate allocation strategy: ' . $allocationStrategy);
-        return match ($allocationStrategy) {
-            'least_used' => new LeastUsedGateSelectionStrategy(),
-            'round_robin' => new RoundRobinGateSelectionStrategy(),
-            default => new GreedyGateSelectionStrategy(),
-        };
-    }
+    /**
+     * @param int $limit
+     * @return array
+     */
     public function assignUnallocatedFlights(int $limit = 50): array
     {
         $assigned = 0;
@@ -54,6 +46,10 @@ class GateAllocatorService
         ];
     }
 
+    /**
+     * @param Flight $flight
+     * @return Gate|null
+     */
     private function allocateFlightToGate(Flight $flight): ?Gate
     {
         if (!$flight->first_seen_at) {
@@ -84,6 +80,10 @@ class GateAllocatorService
         return null;
     }
 
+    /**
+     * @param int $limit
+     * @return Collection
+     */
     private function getUnallocatedFlights(int $limit): Collection
     {
         return Flight::query()
