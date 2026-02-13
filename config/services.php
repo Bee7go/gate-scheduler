@@ -45,6 +45,7 @@ return [
 
     'gates' => [
         'occupation_minutes' => env('GATE_OCCUPATION_TIME'),
+        'allocation_strategy' => env('GATE_ALLOCATION_STRATEGY'),
     ],
 
 ];
