@@ -31,4 +31,11 @@ class FlightFactory extends Factory
             'last_seen_at' => now()->addMinutes(30),
         ];
     }
+
+    public function withoutFirstSeen(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'first_seen_at' => null,
+        ]);
+    }
 }

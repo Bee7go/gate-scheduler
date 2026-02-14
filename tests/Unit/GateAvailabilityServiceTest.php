@@ -16,11 +16,9 @@ class GateAvailabilityServiceTest extends TestCase
 
     private GateAvailabilityService $service;
 
-    // @todo clear pe tearDown?
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->service = new GateAvailabilityService();
     }
 
