@@ -27,7 +27,7 @@ class AllocateGates extends Command
     public function handle()
     {
         $allocator = app(GateAllocatorService::class);
-        $allocator->allocate();
+        $allocator->assignUnallocatedFlights();
 
         $this->info('Gate allocation completed.');
     }
