@@ -28,12 +28,9 @@ class GateAvailabilityServiceTest extends TestCase
         $gate = Gate::factory()->create();
 
         // gate is unavailable from 10.01.2025 until 11.01.2025
-        GateUnavailability::create([
-            'gate_id' => $gate->id,
-            'start_at' => '2025-01-10 00:00:00',
-            'end_at' => '2025-01-11 23:59:59',
-            'reason' => 'repairs',
-        ]);
+        GateUnavailability::factory()
+            ->withinPeriod('2025-01-10 00:00:00', '2025-01-11 23:59:59', $gate->id)
+            ->create();
 
         // check gate is not available between 10.01.2025 12:00 and 10.01.2025 13:30
         $from = new DateTime('2025-01-10 12:00:00');
@@ -49,12 +46,9 @@ class GateAvailabilityServiceTest extends TestCase
         $gate = Gate::factory()->create();
 
         // gate is unavailable from 10.01.2025 until 11.01.2025
-        GateUnavailability::create([
-            'gate_id' => $gate->id,
-            'start_at' => '2025-01-10 00:00:00',
-            'end_at' => '2025-01-11 23:59:59',
-            'reason' => 'repairs',
-        ]);
+        GateUnavailability::factory()
+            ->withinPeriod('2025-01-10 00:00:00', '2025-01-11 23:59:59', $gate->id)
+            ->create();
 
         // check gate is available between 12.01.2025 12:00 and 12.01.2025 13:30
         $from = new DateTime('2025-01-12 12:00:00');
@@ -108,12 +102,9 @@ class GateAvailabilityServiceTest extends TestCase
     {
         $gate = Gate::factory()->create();
 
-        // @todo add factory for GateUnavailability
-        GateUnavailability::create([
-            'gate_id' => $gate->id,
-            'start_at' => '2026-02-14 12:00',
-            'end_at' => '2026-02-14 14:00',
-        ]);
+        GateUnavailability::factory()
+            ->withinPeriod('2026-02-14 12:00', '2026-02-14 14:00', $gate->id)
+            ->create();
 
         $from = new DateTime('2026-02-14 14:00:00');
         $until = new DateTime('2026-02-14 15:30:00');
@@ -125,11 +116,9 @@ class GateAvailabilityServiceTest extends TestCase
     {
         $gate = Gate::factory()->create();
 
-        GateUnavailability::create([
-            'gate_id' => $gate->id,
-            'start_at' => '2026-02-14 12:00',
-            'end_at' => '2026-02-14 14:00',
-        ]);
+        GateUnavailability::factory()
+            ->withinPeriod('2026-02-14 12:00', '2026-02-14 14:00', $gate->id)
+            ->create();
 
         $from = new DateTime('2026-02-14 12:00:00');
         $until = new DateTime('2026-02-14 13:30:00');
