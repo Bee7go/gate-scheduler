@@ -27,18 +27,4 @@ class GateAvailabilityService
 
         return !$hasUnavailabilityConflict;
     }
-
-    // @todo to be moved in a unit test
-    // check function:
-    /*
-     *  use App\Services\GateAvailabilityService;
-        $svc = new GateAvailabilityService();
-
-        $from = now()->setDate(2026, 1, 13)->setTime(10, 0);
-        $until = (clone $from)->addMinutes(90);
-
-        $g8 = DB::table('gates')->where('code', 'G8')->first();
-        $svc->isGateAvailable($g8->id, $from, $until);
-     */
-
 }
