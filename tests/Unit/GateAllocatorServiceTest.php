@@ -28,12 +28,9 @@ class GateAllocatorServiceTest extends TestCase
         $g1 = Gate::factory()->create();
         $g2 = Gate::factory()->create();
 
-        GateUnavailability::create([
-            'gate_id' => $g1->id,
-            'start_at' => '2025-01-10 00:00:00',
-            'end_at' => '2025-01-11 23:59:59',
-            'reason' => 'repairs',
-        ]);
+        GateUnavailability::factory()
+            ->withinPeriod('2025-01-10 00:00:00', '2025-01-11 23:59:59', $g1->id)
+            ->create();
 
         $flight = Flight::factory()->create([
             'first_seen_at' => '2025-01-10 12:00:00',
