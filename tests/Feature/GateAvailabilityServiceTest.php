@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Feature;
 
-use App\Models\GateUnavailability;
-use DateTime;
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Services\GateAvailabilityService;
 use App\Models\Gate;
 use App\Models\GateAllocation;
+use App\Models\GateUnavailability;
+use App\Services\GateAvailabilityService;
+use DateTime;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class GateAvailabilityServiceTest extends TestCase
 {

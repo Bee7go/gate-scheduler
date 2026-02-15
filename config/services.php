@@ -36,6 +36,7 @@ return [
     ],
 
     'opensky' => [
+        'verify_ssl' => env('OPENSKY_VERIFY_SSL', true),
         'airport_icao' => env('AIRPORT_ICAO'),
         'lookback_seconds' => env('OPENSKY_LOOKBACK_SECONDS'),
         'token_url' => env('OPENSKY_TOKEN_URL'),

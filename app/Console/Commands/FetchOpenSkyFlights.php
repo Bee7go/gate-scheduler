@@ -34,18 +34,11 @@ class FetchOpenSkyFlights extends Command
         $arrivalsFlights = $openSkyService->fetchFlights($airport, 'arrival') ?? [];
         $departuresFlights = $openSkyService->fetchFlights($airport, 'departure') ?? [];
 
-        $totalArrivals = count($arrivalsFlights);
-        $totalDepartures = count($departuresFlights);
-
-        $newStoredArrivals = $openSkyService->storeFlights($arrivalsFlights, $airport, 'arrival');
-        $newStoredDepartures = $openSkyService->storeFlights($departuresFlights, $airport, 'departure');
+        $openSkyService->storeFlights($arrivalsFlights, $airport, 'arrival');
+        $openSkyService->storeFlights($departuresFlights, $airport, 'departure');
 
         $durationMs = (int)((microtime(true) - $startedAt) * 1000);
-        $message = "OpenSky sync finished for airport $airport:
-        total arrivals = $totalArrivals, stored arrivals = $newStoredArrivals,
-        total departures = $totalDepartures, stored departures = $newStoredDepartures,
-        total stored new flights = " . ($newStoredArrivals + $newStoredDepartures) . ",
-        duration={$durationMs}ms";
+        $message = "OpenSky sync finished for airport $airport in duration={$durationMs}ms";
 
         $this->info($message);
         Log::info($message);
