@@ -4,12 +4,35 @@ namespace App\Services;
 
 use App\Models\Gate;
 use DateTimeInterface;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use InvalidArgumentException;
 
-class GateAvailabilityService
-{
+class GateAvailabilityService {
+    /**
+     * Checks if a gate is available for a given time range
+     *
+     * @param int $gateId
+     * @param DateTimeInterface $from
+     * @param DateTimeInterface $until
+     * @return bool
+     */
     public function isGateAvailable(int $gateId, DateTimeInterface $from, DateTimeInterface $until): bool
     {
-        $gate = Gate::findOrFail($gateId);
+        if ($gateId <= 0) {
+            throw new InvalidArgumentException('Gate ID must be a positive integer.');
+        }
+
+        if ($from >= $until) {
+            throw new InvalidArgumentException(
+                'Invalid time range: "from" must be earlier than "until".'
+            );
+        }
+
+        $gate = Gate::find($gateId);
+
+        if (!$gate) {
+            throw new ModelNotFoundException("Gate {$gateId} not found.");
+        }
 
         $hasAllocationConflict = $gate->allocations()
             ->where('occupied_from', '<', $until)
