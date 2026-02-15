@@ -16,7 +16,8 @@ return new class extends Migration
             $table->unsignedInteger('code')->unique();
             $table->timestamps();
         });
-        // @todo check if a terminal might be nice to have
+
+        // a terminal might be nice to have
     }
 
     /**

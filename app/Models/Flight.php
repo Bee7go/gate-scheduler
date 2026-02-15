@@ -18,7 +18,7 @@ class Flight extends Model
     protected $fillable = [
         'code',
         'first_seen_at',
-        'last_seen_at', // @todo probably not needed now
+        'last_seen_at', // probably not needed now
     ];
 
     protected $casts = [

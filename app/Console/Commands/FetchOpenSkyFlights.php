@@ -25,7 +25,7 @@ class FetchOpenSkyFlights extends Command
     /**
      * Execute the console command.
      */
-    public function handle(OpenSkyService $openSkyService)
+    public function handle(OpenSkyService $openSkyService): void
     {
         $startedAt = microtime(true);
 
@@ -41,8 +41,11 @@ class FetchOpenSkyFlights extends Command
         $newStoredDepartures = $openSkyService->storeFlights($departuresFlights, $airport, 'departure');
 
         $durationMs = (int)((microtime(true) - $startedAt) * 1000);
-        $message = "OpenSky sync finished for airport {$airport}: total arrivals={$totalArrivals}, stored arrivals={$newStoredArrivals},
-        total departures={$totalDepartures}, stored departures={$newStoredDepartures}, total new data=" . ($newStoredArrivals + $newStoredDepartures) . ", duration={$durationMs}ms";
+        $message = "OpenSky sync finished for airport $airport:
+        total arrivals = $totalArrivals, stored arrivals = $newStoredArrivals,
+        total departures = $totalDepartures, stored departures = $newStoredDepartures,
+        total stored new flights = " . ($newStoredArrivals + $newStoredDepartures) . ",
+        duration={$durationMs}ms";
 
         $this->info($message);
         Log::info($message);
