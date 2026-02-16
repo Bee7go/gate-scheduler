@@ -5,8 +5,10 @@ namespace App\Services;
 use App\Models\Flight;
 use App\Models\Gate;
 use App\Models\GateAllocation;
+use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
 
 class GateAllocatorService
 {
@@ -20,40 +22,58 @@ class GateAllocatorService
     }
 
     /**
+     * Process unallocated flights and assign them to gates
+
      * @param int $limit
      * @return array
      */
     public function assignUnallocatedFlights(int $limit = 50): array
     {
-        $assigned = 0;
-        $unassigned = 0;
+        if ($limit <= 0) {
+            throw new InvalidArgumentException('Limit must be greater than 0.');
+        }
 
         $flights = $this->getUnallocatedFlights($limit);
 
+        $stats = [
+            'processed' => 0,
+            'assigned' => 0,
+            'unassigned' => 0,
+            'errors' => [],
+        ];
+
         foreach ($flights as $flight) {
-            $gate = $this->allocateFlightToGate($flight);
-            if ($gate) {
-                $assigned++;
-            } else {
-                $unassigned++;
+            $stats['processed']++;
+
+            try {
+                $gate = $this->allocateFlightToGate($flight);
+
+                if ($gate) {
+                    $stats['assigned']++;
+                } else {
+                    $stats['unassigned']++;
+                }
+            } catch (Exception $e) {
+                Log::error("Failed to allocate flight {$flight->id}: " . $e->getMessage());
+                $stats['errors'][] = $flight->id;
             }
         }
 
-        return [
-            'processed' => $flights->count(),
-            'assigned' => $assigned,
-            'unassigned' => $unassigned
-        ];
+        return $stats;
     }
 
     /**
+     * Allocate a flight to a gate
+     *
      * @param Flight $flight
      * @return Gate|null
      */
     private function allocateFlightToGate(Flight $flight): ?Gate
     {
         if (!$flight->first_seen_at) {
-            Log::warning('gates.allocate.missing_first_seen_at', ['flightId' => $flight->id]);
+            Log::warning('gates.allocate.missing_first_seen_at', [
+                'flight_id' => $flight->id,
+            ]);
             return null;
         }
         $from = $flight->first_seen_at;
@@ -72,22 +92,34 @@ class GateAllocatorService
 
                 $this->gateSelectionStrategy->onGateAllocated($gate);
 
+                Log::info('gates.allocate.success', [
+                    'flight_id' => $flight->id,
+                    'gate_id'   => $gate->id,
+                ]);
+
                 return $gate;
             }
         }
 
-        // no gate was found available
+        Log::info('gates.allocate.no_gate_available', [
+            'flight_id' => $flight->id,
+        ]);
+
         return null;
     }
 
     /**
+     * Fetch flights waiting for allocation
+     *
      * @param int $limit
      * @return Collection
      */
     private function getUnallocatedFlights(int $limit): Collection
     {
+        // @todo consider locking for update to avoid race conditions
         return Flight::query()
             ->doesntHave('gateAllocation')
+            ->whereNotNull('first_seen_at')
             ->orderBy('first_seen_at')
             ->limit($limit)
             ->get(['id', 'first_seen_at']);

@@ -2,17 +2,17 @@
 
 namespace App\Console\Commands;
 
-use App\Services\GateAllocatorService;
+use App\Services\FlightSyncService;
 use Illuminate\Console\Command;
 
-class AllocateGates extends Command
+class SyncFlights extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'app:allocate-gates';
+    protected $signature = 'app:sync-flights';
 
     /**
      * The console command description.
@@ -24,11 +24,12 @@ class AllocateGates extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(FlightSyncService $flightSyncService): void
     {
-        $allocator = app(GateAllocatorService::class);
-        $allocator->assignUnallocatedFlights();
+        $result = $flightSyncService->sync();
 
-        $this->info('Gate allocation completed.');
+        $this->info('Flights synced successfully');
+        $this->line(json_encode($result));
+
     }
 }

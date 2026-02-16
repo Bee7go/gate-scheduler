@@ -34,6 +34,7 @@ class GateAvailabilityService {
             throw new ModelNotFoundException("Gate {$gateId} not found.");
         }
 
+        // Check for gate allocation conflicts
         $hasAllocationConflict = $gate->allocations()
             ->where('occupied_from', '<', $until)
             ->where('occupied_until', '>', $from)
@@ -43,6 +44,7 @@ class GateAvailabilityService {
             return false;
         }
 
+        // Check for gate unavailability conflicts
         $hasUnavailabilityConflict = $gate->unavailabilities()
             ->where('start_at', '<', $until)
             ->where('end_at', '>', $from)

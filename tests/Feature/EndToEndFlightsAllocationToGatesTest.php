@@ -48,13 +48,10 @@ class EndToEndFlightsAllocationToGatesTest extends TestCase
         ]);
 
         // fetch flights via artisan command
-        $this->artisan('app:fetch-open-sky-flights')->assertExitCode(0);
+        $this->artisan('app:sync-flights')->assertExitCode(0);
 
         // check flights persisted
         $this->assertSame(2, Flight::query()->count());
-
-        // allocate flights to gates via artisan command
-        $this->artisan('app:allocate-gates')->assertExitCode(0);
 
         // allocations persisted
         $allocations = GateAllocation::query()->get();

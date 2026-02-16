@@ -10,4 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::call(function () {
     Artisan::call('app:fetch-open-sky-flights');
-})->everyTwoMinutes();
+})->everyTwoMinutes(); // @todo daca dureaza mai mult de 2 min?

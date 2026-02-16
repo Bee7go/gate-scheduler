@@ -18,6 +18,5 @@ class GreedyGateSelectionStrategy implements GateSelectionStrategyInterface
     public function onGateAllocated(Gate $gate): void
     {
         // not applicable
-        // @todo but could use for logging
     }
 }
