@@ -162,4 +162,51 @@ class GateAllocatorServiceTest extends TestCase
 
         $this->assertSame(2, GateAllocation::query()->count());
     }
+
+    public function test_multiple_flights_can_be_allocated_to_same_gate_without_overlap(): void
+    {
+        // create just one gate
+        Gate::factory()->create();
+
+        $base = now()->startOfHour();
+
+        Flight::factory()->create([
+            'first_seen_at' => $base,
+        ]);
+
+        Flight::factory()->create([
+            'first_seen_at' => $base->copy()->addHours(2),
+        ]);
+
+        Flight::factory()->create([
+            'first_seen_at' => $base->copy()->addHours(4),
+        ]);
+
+        $stats = $this->service->assignUnallocatedFlights(10);
+
+        // assert all flights allocated
+        $this->assertEquals(3, $stats['assigned']);
+        $this->assertDatabaseCount('gate_allocations', 3);
+
+        // ensure all allocations are on same gate
+        $this->assertEquals(
+            1,
+            GateAllocation::distinct('gate_id')->count('gate_id')
+        );
+
+        // verify intervals do NOT overlap
+        $allocations = GateAllocation::orderBy('occupied_from')->get();
+
+        for ($i = 0; $i < $allocations->count() - 1; $i++) {
+
+            $current = $allocations[$i];
+            $next = $allocations[$i + 1];
+
+            $this->assertTrue(
+                $current->occupied_until <= $next->occupied_from,
+                "Gate allocations overlap!"
+            );
+        }
+    }
+
 }
