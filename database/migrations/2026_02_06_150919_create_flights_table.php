@@ -24,6 +24,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['icao24', 'airport_icao', 'direction']);
+
+            $table->index('first_seen_at');
         });
     }
 

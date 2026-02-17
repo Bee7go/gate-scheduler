@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string('reason')->nullable();
 
             $table->timestamps();
+
+            $table->index(['gate_id', 'start_at', 'end_at']);
         });
     }
 

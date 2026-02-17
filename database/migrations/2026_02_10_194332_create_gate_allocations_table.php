@@ -27,11 +27,8 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // @todo verifica concret daca avem nevoie
-            // Un zbor să nu fie alocat de 2 ori
             $table->unique('flight_id');
 
-            // @todo probabil mai trebuie aranjati si ajustati indecsii
             $table->index(['gate_id', 'occupied_from', 'occupied_until']);
         });
     }
