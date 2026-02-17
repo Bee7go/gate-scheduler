@@ -8,6 +8,12 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::call(function () {
-    Artisan::call('app:fetch-open-sky-flights');
-})->everyTwoMinutes(); // @todo daca dureaza mai mult de 2 min?
+Schedule::command('app:sync-flights')
+    ->everyTwoMinutes()
+    ->withoutOverlapping(10)
+    ->runInBackground();
+
+Schedule::command('app:gate-allocation-report')
+    ->everyThreeMinutes() #everyFiveMinutes
+    ->withoutOverlapping(10)
+    ->runInBackground();

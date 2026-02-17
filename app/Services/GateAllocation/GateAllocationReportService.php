@@ -100,7 +100,7 @@ class GateAllocationReportService
             'exceptions' => $exceptions,
         ];
 
-        Log::info('allocation.audit.completed', $report);
+        Log::info('allocation.report.completed', $report);
 
         return $report;
     }
