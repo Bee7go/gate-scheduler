@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Flights;
 
+use App\Services\GateAllocation\GateAllocatorService;
 use Illuminate\Support\Facades\Log;
 
 class FlightSyncService

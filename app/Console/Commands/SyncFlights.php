@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Services\FlightSyncService;
+use App\Services\Flights\FlightSyncService;
 use Illuminate\Console\Command;
 
 class SyncFlights extends Command

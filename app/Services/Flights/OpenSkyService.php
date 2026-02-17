@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Flights;
 
 use App\Models\Flight;
 use DateTime;
@@ -105,13 +105,12 @@ class OpenSkyService
      */
     public function fetchFlights(string $airport, string $direction): ?array {
 
-        // Validate direction is valid
+        // validate parameters
         if (!in_array($direction, self::DIRECTIONS)) {
             Log::error("Invalid flight direction provided: {$direction}");
             return null;
         }
 
-        // Validate airport code (ICAO codes are 4 letters)
         if (!preg_match('/^[A-Z]{4}$/', $airport)) {
             Log::warning("Invalid airport ICAO code provided: {$airport}");
             return null;

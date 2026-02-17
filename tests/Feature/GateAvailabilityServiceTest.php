@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Gate;
 use App\Models\GateAllocation;
 use App\Models\GateUnavailability;
-use App\Services\GateAvailabilityService;
+use App\Services\GateAllocation\GateAvailabilityService;
 use DateTime;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

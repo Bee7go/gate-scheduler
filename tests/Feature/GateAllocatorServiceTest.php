@@ -6,7 +6,7 @@ use App\Models\Flight;
 use App\Models\Gate;
 use App\Models\GateAllocation;
 use App\Models\GateUnavailability;
-use App\Services\GateAllocatorService;
+use App\Services\GateAllocation\GateAllocatorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

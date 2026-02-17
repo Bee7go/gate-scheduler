@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Services\GateAllocation\GateAllocationReportService;
 use Illuminate\Console\Command;
-use App\Services\GateAllocationReportService;
 
 class GateAllocationReport extends Command
 {

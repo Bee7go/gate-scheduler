@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Services\GateSelectionStrategyFactory;
-use App\Services\GateSelectionStrategyInterface;
+use App\Services\GateAllocation\Strategies\GateSelectionStrategyFactory;
+use App\Services\GateAllocation\Strategies\GateSelectionStrategyInterface;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider

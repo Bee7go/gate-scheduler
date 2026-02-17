@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\GateAllocation;
 
 use App\Models\Flight;
 use App\Models\Gate;
 use App\Models\GateAllocation;
+use App\Services\GateAllocation\Strategies\GateSelectionStrategyInterface;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;

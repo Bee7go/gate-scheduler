@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\GateAllocation\Strategies;
 
 use App\Models\Gate;
 use DateTimeInterface;

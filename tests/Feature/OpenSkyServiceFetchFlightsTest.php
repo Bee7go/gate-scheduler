@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Flight;
-use App\Services\OpenSkyService;
+use App\Services\Flights\OpenSkyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;

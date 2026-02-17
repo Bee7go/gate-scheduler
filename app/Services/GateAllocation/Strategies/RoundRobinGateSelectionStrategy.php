@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\GateAllocation\Strategies;
 
 use App\Models\Gate;
+use DateTimeInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use DateTimeInterface;
 
 class RoundRobinGateSelectionStrategy implements GateSelectionStrategyInterface
 {
