@@ -5,16 +5,14 @@ namespace App\Services;
 use App\Models\Gate;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
+use DateTimeInterface;
 
 class RoundRobinGateSelectionStrategy implements GateSelectionStrategyInterface
 {
     private const CACHE_KEY = 'gates.round_robin.last_gate_id';
 
-    public function getOrderedGates(): Collection
+    public function getOrderedGates(DateTimeInterface $flightStart = null): Collection
     {
-        Log::info('Selecting gates by round robin');
-
         $gates = Gate::orderBy('code')->get();
         if ($gates->isEmpty()) {
             return $gates;

@@ -27,7 +27,7 @@ class GateAllocatorService
      * @param int $limit
      * @return array
      */
-    public function assignUnallocatedFlights(int $limit = 50): array
+    public function assignUnallocatedFlights(int $limit = 100): array
     {
         if ($limit <= 0) {
             throw new InvalidArgumentException('Limit must be greater than 0.');
@@ -79,7 +79,7 @@ class GateAllocatorService
         $from = $flight->first_seen_at;
         $until = (clone $from)->addMinutes((int)config('services.gates.occupation_minutes', 90));
 
-        $gates = $this->gateSelectionStrategy->getOrderedGates();
+        $gates = $this->gateSelectionStrategy->getOrderedGates($flight->first_seen_at);
 
         foreach ($gates as $gate) {
             if ($this->availabilityService->isGateAvailable($gate->id, $from, $until)) {
@@ -116,14 +116,11 @@ class GateAllocatorService
      */
     private function getUnallocatedFlights(int $limit): Collection
     {
-        // @todo consider locking for update to avoid race conditions
         return Flight::query()
             ->doesntHave('gateAllocation')
             ->whereNotNull('first_seen_at')
             ->orderBy('first_seen_at')
             ->limit($limit)
             ->get(['id', 'first_seen_at']);
-
-        // no need to left join on the table :)
     }
 }

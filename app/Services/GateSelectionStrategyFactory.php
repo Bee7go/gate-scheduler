@@ -10,6 +10,7 @@ class GateSelectionStrategyFactory
         'greedy' => GreedyGateSelectionStrategy::class,
         'least_used' => LeastUsedGateSelectionStrategy::class,
         'round_robin' => RoundRobinGateSelectionStrategy::class,
+        'earliest_available' => EarliestAvailableGateSelectionStrategy::class,
     ];
 
     public function make(?string $strategyKey = null): GateSelectionStrategyInterface
