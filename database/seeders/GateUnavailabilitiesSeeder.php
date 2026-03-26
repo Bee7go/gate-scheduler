@@ -18,8 +18,6 @@ class GateUnavailabilitiesSeeder extends Seeder
             return;
         }
 
-        // @todo de gasit niste date mock mai diverse
-
         DB::table('gate_unavailabilities')->insert([
             'gate_id' => $gate->id,
             'start_at' => '2026-01-10 00:00:00',
