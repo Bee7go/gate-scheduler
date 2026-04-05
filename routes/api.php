@@ -1,0 +1,20 @@
+<?php
+
+use App\Http\Controllers\Api\V1\AllocationController;
+use App\Http\Controllers\Api\V1\ApiKeyController;
+use App\Http\Controllers\Api\V1\LoginController;
+use App\Http\Controllers\Api\V1\RegistrationController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('v1')->group(function () {
+    Route::post('/login', [LoginController::class, 'store']);
+    Route::post('/register', [RegistrationController::class, 'store']);
+
+    Route::middleware('auth.bearer')->group(function () {
+        Route::post('/api-keys', [ApiKeyController::class, 'store']);
+    });
+
+    Route::middleware('auth.apikey')->group(function () {
+        Route::get('/allocations', [AllocationController::class, 'index']);
+    });
+});

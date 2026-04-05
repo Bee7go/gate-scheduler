@@ -14,10 +14,13 @@ class GateSeeder extends Seeder
      */
     public function run(): void
     {
-        // generate initial dataset with 20 gates
+        // generate 20 new gates
+        $gateCount = DB::table('gates')->count();
+        $startNumber = $gateCount + 1;
+        
         $gates = [];
 
-        foreach (range(1, 20) as $i) {
+        foreach (range($startNumber, $startNumber + 19) as $i) {
             $gates[] = [
                 'code' => 'G' . $i,
                 'created_at' => now(),
