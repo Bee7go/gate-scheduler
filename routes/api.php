@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\GateStatusController;
 use App\Http\Controllers\Api\V1\GateUnavailabilityController;
 use App\Http\Controllers\Api\V1\LoginController;
 use App\Http\Controllers\Api\V1\RegistrationController;
+use App\Http\Controllers\Api\V1\SyncController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -21,5 +22,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/gates/status', [GateStatusController::class, 'index']);
         Route::get('/gates/unavailabilities', [GateUnavailabilityController::class, 'index']);
         Route::post('/gates/unavailabilities', [GateUnavailabilityController::class, 'store']);
+        Route::post('/system/sync-now', [SyncController::class, 'store'])
+            ->middleware('throttle:sync-now');
     });
 });

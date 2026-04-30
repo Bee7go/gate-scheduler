@@ -108,6 +108,7 @@ curl "https://your-app.test/api/v1/gates/status" \
 | `GET` | `/gates/status` | API key | Gate statuses (free/occupied/maintenance) |
 | `GET` | `/gates/unavailabilities` | API key | List gate unavailability windows |
 | `POST` | `/gates/unavailabilities` | API key | Create a gate unavailability |
+| `POST` | `/system/sync-now` | API key | Trigger a flight sync on demand (rate limited) |
 
 ---
 

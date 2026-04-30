@@ -58,6 +58,12 @@ Both are shown only once when created — store them safely.
 | `GET` | `/gates/unavailabilities` | List gate unavailability windows |
 | `POST` | `/gates/unavailabilities` | Create a new gate unavailability |
 
+### System (API key required)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/system/sync-now` | Trigger a flight sync on demand (rate limited) |
+
 ---
 
 ## Error Responses
@@ -425,3 +431,45 @@ curl -X POST https://your-app.test/api/v1/gates/unavailabilities \
 ```
 
 > The `reason` field is optional — omit it or send `null` if you don't need one.
+
+---
+
+### `POST /system/sync-now`
+
+Trigger a flight sync on demand. Fetches the latest flights from OpenSky and allocates them to gates. Requires an **API key**.
+
+This endpoint is **rate limited** to 1 request per 2 minutes (per API key) and uses a lock to prevent overlapping syncs.
+
+#### Example
+
+```bash
+curl -X POST https://your-app.test/api/v1/system/sync-now \
+  -H "X-Api-Key: your-api-key"
+```
+
+#### Response (`200 OK`)
+
+```json
+{
+  "data": {
+    "arrivals_fetched": 5,
+    "departures_fetched": 3,
+    "allocation": {
+      "allocated": 4,
+      "unallocated": 1
+    }
+  }
+}
+```
+
+#### Response (`409 Conflict`) — sync already in progress
+
+```json
+{
+  "message": "A sync is already in progress. Please try again later."
+}
+```
+
+#### Response (`429 Too Many Requests`) — rate limited
+
+Returned if more than 1 request is made within a 2-minute window.
