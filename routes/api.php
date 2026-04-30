@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AllocationController;
 use App\Http\Controllers\Api\V1\ApiKeyController;
 use App\Http\Controllers\Api\V1\GateStatusController;
 use App\Http\Controllers\Api\V1\GateUnavailabilityController;
+use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\LoginController;
 use App\Http\Controllers\Api\V1\RegistrationController;
 use App\Http\Controllers\Api\V1\SyncController;
@@ -24,5 +25,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/gates/unavailabilities', [GateUnavailabilityController::class, 'store']);
         Route::post('/system/sync-now', [SyncController::class, 'store'])
             ->middleware('throttle:sync-now');
+        Route::get('/system/health', [HealthController::class, 'index']);
     });
 });

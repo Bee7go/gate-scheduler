@@ -63,6 +63,7 @@ Both are shown only once when created — store them safely.
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `POST` | `/system/sync-now` | Trigger a flight sync on demand (rate limited) |
+| `GET` | `/system/health` | Lightweight health check for the scheduler |
 
 ---
 
@@ -473,3 +474,74 @@ curl -X POST https://your-app.test/api/v1/system/sync-now \
 #### Response (`429 Too Many Requests`) — rate limited
 
 Returned if more than 1 request is made within a 2-minute window.
+
+---
+
+### `GET /system/health`
+
+Return a lightweight health summary for the scheduler, database, sync process, and gates. Requires an **API key**.
+
+This endpoint is intentionally cheap — it checks database connectivity and reads a few counts. It does not call any external APIs. Returns `503` if the database is unreachable.
+
+#### Example
+
+```bash
+curl https://your-app.test/api/v1/system/health \
+  -H "X-Api-Key: your-api-key"
+```
+
+#### Response (`200 OK`)
+
+```json
+{
+  "data": {
+    "status": "healthy",
+    "database": {
+      "status": "ok"
+    },
+    "sync": {
+      "last_synced_at": "2026-04-30T14:24:04+00:00"
+    },
+    "flights": {
+      "total": 628
+    },
+    "gates": {
+      "total": 10,
+      "active_allocations": 3,
+      "active_unavailabilities": 1
+    },
+    "checked_at": "2026-04-30T14:58:56+00:00"
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `status` | `healthy` if database is reachable, `degraded` otherwise |
+| `database.status` | `ok` or `unreachable` |
+| `sync.last_synced_at` | ISO 8601 timestamp of the most recently updated flight (null if no flights) |
+| `flights.total` | Total number of flights stored in the database |
+| `gates.total` | Total number of gates |
+| `gates.active_allocations` | Allocations active right now |
+| `gates.active_unavailabilities` | Unavailability windows active right now |
+| `checked_at` | ISO 8601 timestamp when the health check ran |
+
+#### Response (`503 Service Unavailable`) — database unreachable
+
+All database-backed fields are returned as `null`. The response shape is identical so clients can always parse it.
+
+```json
+{
+  "data": {
+    "status": "degraded",
+    "database": { "status": "unreachable" },
+    "sync": { "last_synced_at": null },
+    "flights": { "total": null },
+    "gates": {
+      "total": null,
+      "active_allocations": null,
+      "active_unavailabilities": null
+    },
+    "checked_at": "2026-04-30T14:58:56+00:00"
+  }
+}
