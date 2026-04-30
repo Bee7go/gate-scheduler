@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\AllocationController;
 use App\Http\Controllers\Api\V1\ApiKeyController;
+use App\Http\Controllers\Api\V1\GateStatusController;
 use App\Http\Controllers\Api\V1\LoginController;
 use App\Http\Controllers\Api\V1\RegistrationController;
 use Illuminate\Support\Facades\Route;
@@ -16,5 +17,6 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth.apikey')->group(function () {
         Route::get('/allocations', [AllocationController::class, 'index']);
+        Route::get('/gates/status', [GateStatusController::class, 'index']);
     });
 });
