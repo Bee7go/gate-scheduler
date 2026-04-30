@@ -1,169 +1,165 @@
-# Airport Gate Scheduler
+# ✈️ Airport Gate Scheduler
 
-Airport Gate Scheduler is a Laravel application that ingests recent flight events from OpenSky and assigns flights to airport gates while respecting gate unavailability windows.
+**Automatically assign flights to airport gates — and manage it all through a clean REST API.**
+
+Airport Gate Scheduler pulls live flight data from OpenSky, intelligently assigns each flight to an available gate, and gives you a full API to monitor gate status, manage unavailabilities, and view allocations in real time.
+
+---
 
 ## Features
 
-- Fetches arrivals and departures from OpenSky for one airport ICAO code
-- Stores flights with upsert semantics (no duplicates by aircraft-airport-direction)
-- Allocates unassigned flights to available gates
-- Supports multiple gate selection strategies
-- Generates periodic gate allocation health reports
-- Includes feature tests for flight sync and gate allocation behavior
+- Pulls live flight data from the OpenSky Network (arrivals & departures)
+- Automatically assigns flights to available gates using configurable strategies
+- Tracks gate status in real time — free, occupied, or under maintenance
+- Manages gate unavailabilities (maintenance, cleaning, repairs)
+- Generates periodic gate usage health reports
+- Full REST API with token-based authentication
+- Includes feature and unit tests covering authentication, allocations, gate status, and unavailability management
+
+---
 
 ## Tech Stack
 
-- PHP 8.2+
-- Laravel 12
-- SQLite (default local/testing)
-- PHPUnit 11
-- Vite + Tailwind CSS
+- **PHP 8.2+** / **Laravel 12**
+- **SQLite** (default for local & testing)
+- **PHPUnit 11**
+- **Vite + Tailwind CSS**
 
-## Architecture Summary
+---
 
-Main flow:
-
-1. Command `app:sync-flights` runs `FlightSyncService`
-2. `OpenSkyService` fetches arrivals and departures
-3. Flights are upserted in `flights`
-4. `GateAllocatorService` assigns unallocated flights to gates
-
-Reporting flow:
-
-1. Command `app:gate-allocation-report` runs `GateAllocationReportService`
-2. The report calculates gate usage, blocked gates, unallocated flights, and detected allocation anomalies
-
-## Gate Allocation Strategies
-
-Set `GATE_ALLOCATION_STRATEGY` in `.env`:
-
-- `greedy`
-- `least_used`
-- `round_robin`
-- `earliest_available`
-
-## Environment Variables
-
-Add these keys to your `.env`:
-
-```dotenv
-# OpenSky
-AIRPORT_ICAO=EHAM
-OPENSKY_LOOKBACK_SECONDS=7200
-OPENSKY_TOKEN_URL=https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token
-OPENSKY_CLIENT_ID=your-client-id
-OPENSKY_CLIENT_SECRET=your-client-secret
-OPENSKY_VERIFY_SSL=true
-
-# Gate allocation
-GATE_OCCUPATION_TIME=90
-GATE_ALLOCATION_STRATEGY=greedy
-```
-
-## Local Setup
+## Quick Start
 
 1. Install dependencies:
 
 ```bash
-composer install
-npm install
+composer install && npm install
 ```
 
-2. Create environment file and app key:
+2. Set up environment:
 
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-On Windows PowerShell, use:
+3. Configure OpenSky credentials and allocation strategy in `.env`:
 
-```powershell
-Copy-Item .env.example .env
-php artisan key:generate
+```dotenv
+AIRPORT_ICAO=EHAM
+OPENSKY_CLIENT_ID=your-client-id
+OPENSKY_CLIENT_SECRET=your-client-secret
+GATE_OCCUPATION_TIME=90
+GATE_ALLOCATION_STRATEGY=greedy
 ```
 
-3. Create database and run migrations:
+4. Run migrations and build assets:
 
 ```bash
 php artisan migrate
-```
-
-4. Build frontend assets:
-
-```bash
 npm run build
 ```
 
-You can also use the bundled Composer bootstrap script:
+Or use the bundled bootstrap script: `composer run setup`
 
-```bash
-composer run setup
-```
+---
 
 ## Running the App
 
-Start all local dev processes in one command:
+Start everything in one command:
 
 ```bash
 composer run dev
 ```
 
-This starts:
+This starts the Laravel server, queue listener, log tailing, and Vite dev server.
 
-- Laravel HTTP server
-- Queue listener
-- Log tailing
-- Vite dev server
-
-## Commands
-
-Sync flights and allocate gates:
-
-```bash
-php artisan app:sync-flights
-```
-
-Generate gate allocation report:
-
-```bash
-php artisan app:gate-allocation-report
-```
-
-Scheduler behavior in `routes/console.php`:
-
-- `app:sync-flights` every 2 minutes
-- `app:gate-allocation-report` every 3 minutes
-
-Run the scheduler loop locally:
+To run the scheduler loop locally:
 
 ```bash
 php artisan schedule:work
 ```
 
-## Database Notes
+---
 
-Key tables:
+## API Overview
 
-- `flights`
-- `gates`
-- `gate_allocations`
-- `gate_unavailabilities`
+All endpoints live under `/api/v1`. Authentication uses two layers:
 
-Allocations enforce one active allocation record per flight via a unique index on `flight_id`.
+- **Bearer token** — obtained via login, used for account actions (e.g., creating API keys)
+- **API key** — created with a Bearer token, used for all data endpoints
 
-## Seeding
+Full API documentation with examples: **[docs/API.md](docs/API.md)**
 
-Project seeders exist for gates and gate unavailability data:
+Quick example — check which gates are free right now:
 
-- `Database\\Seeders\\GateSeeder`
-- `Database\\Seeders\\GateUnavailabilitiesSeeder`
+```bash
+curl "https://your-app.test/api/v1/gates/status" \
+  -H "X-Api-Key: your-api-key"
+```
 
-They are currently not invoked from `DatabaseSeeder`, so run them explicitly if needed.
+### Available Endpoints
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/register` | — | Create a new account |
+| `POST` | `/login` | — | Log in, get a Bearer token |
+| `POST` | `/api-keys` | Bearer | Generate an API key |
+| `GET` | `/allocations` | API key | List flight-to-gate allocations |
+| `GET` | `/gates/status` | API key | Gate statuses (free/occupied/maintenance) |
+| `GET` | `/gates/unavailabilities` | API key | List gate unavailability windows |
+| `POST` | `/gates/unavailabilities` | API key | Create a gate unavailability |
+
+---
+
+## How It Works
+
+1. The `app:sync-flights` command fetches arrivals and departures from OpenSky
+2. Flights are stored with deduplication
+3. The Gate Allocator assigns each unallocated flight to an available gate
+4. The `app:gate-allocation-report` command generates health reports (gate usage, blocked gates, unassigned flights)
+
+Both commands run automatically on a schedule — flight sync every **2 minutes**, reports every **3 minutes**.
+
+---
+
+## Gate Allocation Strategies
+
+Set `GATE_ALLOCATION_STRATEGY` in `.env`:
+
+| Strategy | Description |
+|----------|-------------|
+| `greedy` | Picks the first available gate |
+| `least_used` | Prefers the gate with the fewest allocations |
+| `round_robin` | Rotates evenly through all gates |
+| `earliest_available` | Picks the gate that becomes free the soonest |
+
+---
+
+## Commands
+
+| Command | What it does |
+|---------|-------------|
+| `php artisan app:sync-flights` | Fetch flights from OpenSky and allocate them to gates |
+| `php artisan app:gate-allocation-report` | Generate a gate usage health report |
+
+---
+
+## Database
+
+Key tables: `flights`, `gates`, `gate_allocations`, `gate_unavailabilities`, `users`, `api_keys`, `access_tokens`
+
+Allocations enforce one active record per flight via a unique index on `flight_id`.
+
+Seeders for gates and unavailabilities exist but are not auto-run:
+
+```bash
+php artisan db:seed --class=GateSeeder
+php artisan db:seed --class=GateUnavailabilitiesSeeder
+```
+
+---
 
 ## Testing
-
-Run all tests:
 
 ```bash
 composer run test
@@ -172,17 +168,7 @@ composer run test
 Run a specific test file:
 
 ```bash
-php artisan test tests/Feature/GateAllocatorServiceTest.php
+php artisan test tests/Feature/GateUnavailabilityApiTest.php
 ```
 
-Test configuration uses in-memory SQLite for fast execution.
-
-## Troubleshooting
-
-- No flights fetched: verify OpenSky credentials and token URL.
-- No allocations created: verify gates exist and `first_seen_at` is present on flights.
-- Unexpected unassigned flights: check gate unavailability windows and current allocation strategy.
-
-## License
-
-This project is licensed under the MIT License.
+Tests use in-memory SQLite for fast execution.
