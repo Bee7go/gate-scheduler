@@ -57,6 +57,7 @@ Both are shown only once when created — store them safely.
 | `GET` | `/gates/status` | See which gates are free, occupied, or under maintenance |
 | `GET` | `/gates/unavailabilities` | List gate unavailability windows |
 | `POST` | `/gates/unavailabilities` | Create a new gate unavailability |
+| `GET` | `/statistics` | Period-scoped statistics for dashboards |
 
 ### System (API key required)
 
@@ -435,7 +436,154 @@ curl -X POST https://your-app.test/api/v1/gates/unavailabilities \
 
 ---
 
-### `POST /system/sync-now`
+### `GET /statistics`
+
+Return period-scoped statistics useful for building dashboards. Requires an **API key**.
+
+All metrics are scoped strictly to the requested `from`/`to` interval. The endpoint does not call any external APIs and returns immediately.
+
+#### Query Parameters
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `from` | datetime | **yes** | Start of the period (ISO 8601 or any parseable date) |
+| `to` | datetime | **yes** | End of the period — must be after `from` |
+
+#### Example
+
+```bash
+curl "https://your-app.test/api/v1/statistics?from=2026-04-01T00:00:00Z&to=2026-04-30T23:59:59Z" \
+  -H "X-Api-Key: your-api-key"
+```
+
+#### Response (`200 OK`)
+
+```json
+{
+  "data": {
+    "period": {
+      "from": "2026-04-01T00:00:00+00:00",
+      "to": "2026-04-30T23:59:59+00:00"
+    },
+    "gates": {
+      "total": 12,
+      "active": 10,
+      "had_unavailability": 2,
+      "utilization_rate": 0.75,
+      "average_turnaround_minutes": 22
+    },
+    "flights": {
+      "total": 628,
+      "arrivals": 314,
+      "departures": 314,
+      "unallocated": 38,
+      "allocation_rate": 0.94
+    },
+    "allocations": {
+      "total": 590,
+      "average_duration_minutes": 90,
+      "shortest_duration_minutes": 45,
+      "longest_duration_minutes": 210
+    },
+    "peak": {
+      "busiest_hour": "17:00",
+      "max_simultaneous_gates": 10,
+      "busiest_date": "2026-04-15",
+      "busiest_date_allocations": 32
+    },
+    "top_gates": [
+      { "gate_code": "G1", "allocations_count": 48 },
+      { "gate_code": "G5", "allocations_count": 42 },
+      { "gate_code": "G3", "allocations_count": 39 },
+      { "gate_code": "G8", "allocations_count": 35 },
+      { "gate_code": "G2", "allocations_count": 30 }
+    ],
+    "unavailability": {
+      "total_events": 5,
+      "total_downtime_minutes": 300,
+      "affected_gates": 2,
+      "most_common_reason": "Scheduled maintenance"
+    },
+    "generated_at": "2026-04-30T15:10:00+00:00"
+  }
+}
+```
+
+#### Field Reference
+
+**`period`**
+
+| Field | Description |
+|-------|-------------|
+| `from` | Start of the requested period (echoed back as ISO 8601) |
+| `to` | End of the requested period (echoed back as ISO 8601) |
+
+**`gates`**
+
+| Field | Description |
+|-------|-------------|
+| `total` | Total number of gates in the system |
+| `active` | Gates that had at least one allocation during the period |
+| `had_unavailability` | Gates that had at least one unavailability window overlapping the period |
+| `utilization_rate` | `sum(occupied_minutes) / (total_gates × period_minutes)` — 0 to 1 |
+| `average_turnaround_minutes` | Average gap between consecutive allocations on the same gate (`null` if fewer than 2 allocations per gate) |
+
+**`flights`**
+
+| Field | Description |
+|-------|-------------|
+| `total` | Flights with `first_seen_at` within the period |
+| `arrivals` | Subset with `direction = arrival` |
+| `departures` | Subset with `direction = departure` |
+| `unallocated` | Flights in the period without a gate assignment |
+| `allocation_rate` | `(total - unallocated) / total` — 0 to 1 (`0` when no flights) |
+
+**`allocations`**
+
+| Field | Description |
+|-------|-------------|
+| `total` | Allocations whose window overlaps the period |
+| `average_duration_minutes` | Mean of `occupied_until - occupied_from` in minutes (`null` when no allocations) |
+| `shortest_duration_minutes` | Shortest single allocation (`null` when no allocations) |
+| `longest_duration_minutes` | Longest single allocation (`null` when no allocations) |
+
+**`peak`**
+
+| Field | Description |
+|-------|-------------|
+| `busiest_hour` | Hour slot (e.g. `"17:00"`) with the most simultaneous allocations |
+| `max_simultaneous_gates` | Number of gates occupied at the same time during `busiest_hour` |
+| `busiest_date` | Calendar date (e.g. `"2026-04-15"`) with the most overlapping allocations |
+| `busiest_date_allocations` | Allocation count on `busiest_date` |
+
+**`top_gates`**
+
+Array of up to 5 gates ordered by allocation count descending.
+
+| Field | Description |
+|-------|-------------|
+| `gate_code` | Gate identifier (e.g. `"G1"`) |
+| `allocations_count` | Number of allocations in the period |
+
+**`unavailability`**
+
+| Field | Description |
+|-------|-------------|
+| `total_events` | Unavailability records overlapping the period |
+| `total_downtime_minutes` | Sum of downtime clipped to the period boundaries |
+| `affected_gates` | Distinct gate count with at least one unavailability event |
+| `most_common_reason` | Most frequently used `reason` string (`null` if all reasons are null or no events) |
+
+#### Validation Errors (`422`)
+
+```json
+{
+  "message": "The to field must be a date after from.",
+  "errors": {
+    "to": ["The to field must be a date after from."]
+  }
+}
+```
 
 Trigger a flight sync on demand. Fetches the latest flights from OpenSky and allocates them to gates. Requires an **API key**.
 

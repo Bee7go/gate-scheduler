@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\GateUnavailabilityController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\LoginController;
 use App\Http\Controllers\Api\V1\RegistrationController;
+use App\Http\Controllers\Api\V1\StatisticsController;
 use App\Http\Controllers\Api\V1\SyncController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,5 +27,6 @@ Route::prefix('v1')->group(function () {
         Route::post('/system/sync-now', [SyncController::class, 'store'])
             ->middleware('throttle:sync-now');
         Route::get('/system/health', [HealthController::class, 'index']);
+        Route::get('/statistics', [StatisticsController::class, 'index']);
     });
 });

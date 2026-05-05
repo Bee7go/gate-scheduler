@@ -13,8 +13,9 @@ Airport Gate Scheduler pulls live flight data from OpenSky, intelligently assign
 - Tracks gate status in real time — free, occupied, or under maintenance
 - Manages gate unavailabilities (maintenance, cleaning, repairs)
 - Generates periodic gate usage health reports
+- Exposes a statistics endpoint with period-scoped KPIs: gate utilization, flight allocation rates, peak hours, top gates, and unavailability summaries
 - Full REST API with token-based authentication
-- Includes feature and unit tests covering authentication, allocations, gate status, and unavailability management
+- Includes feature and unit tests covering authentication, allocations, gate status, unavailability management, and statistics
 
 ---
 
@@ -108,6 +109,7 @@ curl "https://your-app.test/api/v1/gates/status" \
 | `GET` | `/gates/status` | API key | Gate statuses (free/occupied/maintenance) |
 | `GET` | `/gates/unavailabilities` | API key | List gate unavailability windows |
 | `POST` | `/gates/unavailabilities` | API key | Create a gate unavailability |
+| `GET` | `/statistics` | API key | Period-scoped statistics for dashboards |
 | `POST` | `/system/sync-now` | API key | Trigger a flight sync on demand (rate limited) |
 | `GET` | `/system/health` | API key | Lightweight health check for the scheduler |
 
