@@ -22,7 +22,7 @@ class HealthApiTest extends TestCase
 
         ApiKey::create([
             'name' => 'Test Client',
-            'key'  => hash('sha256', $this->plainKey),
+            'key' => hash('sha256', $this->plainKey),
         ]);
     }
 
@@ -48,9 +48,9 @@ class HealthApiTest extends TestCase
                 'data' => [
                     'status',
                     'database' => ['status'],
-                    'sync'     => ['last_synced_at'],
-                    'flights'  => ['total'],
-                    'gates'    => ['total', 'active_allocations', 'active_unavailabilities'],
+                    'sync' => ['last_synced_at'],
+                    'flights' => ['total'],
+                    'gates' => ['total', 'active_allocations', 'active_unavailabilities'],
                     'checked_at',
                 ],
             ]);
@@ -76,30 +76,30 @@ class HealthApiTest extends TestCase
 
         // Active allocation
         GateAllocation::factory()->create([
-            'gate_id'       => $gate->id,
+            'gate_id' => $gate->id,
             'occupied_from' => now()->subMinutes(30),
             'occupied_until' => now()->addMinutes(30),
         ]);
 
         // Past allocation (should not count)
         GateAllocation::factory()->create([
-            'gate_id'       => $gate->id,
+            'gate_id' => $gate->id,
             'occupied_from' => now()->subHours(3),
             'occupied_until' => now()->subHours(2),
         ]);
 
         // Active unavailability
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => now()->subMinutes(10),
-            'end_at'   => now()->addMinutes(50),
+            'end_at' => now()->addMinutes(50),
         ]);
 
         // Past unavailability (should not count)
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => now()->subHours(5),
-            'end_at'   => now()->subHours(4),
+            'end_at' => now()->subHours(4),
         ]);
 
         $response = $this->apiGet('/api/v1/system/health');
@@ -110,6 +110,30 @@ class HealthApiTest extends TestCase
             ->assertJsonPath('data.gates.active_unavailabilities', 1);
 
         $this->assertGreaterThanOrEqual(5, $response->json('data.flights.total'));
+    }
+
+    public function test_ended_allocations_and_unavailabilities_are_not_active(): void
+    {
+        $now = now();
+        $this->travelTo($now);
+
+        $gate = Gate::factory()->create();
+        GateAllocation::factory()->create([
+            'gate_id' => $gate->id,
+            'occupied_from' => $now->copy()->subHour(),
+            'occupied_until' => $now,
+        ]);
+        GateUnavailability::factory()->create([
+            'gate_id' => $gate->id,
+            'start_at' => $now->copy()->subHour(),
+            'end_at' => $now,
+        ]);
+
+        $response = $this->apiGet('/api/v1/system/health');
+
+        $response->assertOk()
+            ->assertJsonPath('data.gates.active_allocations', 0)
+            ->assertJsonPath('data.gates.active_unavailabilities', 0);
     }
 
     public function test_last_synced_at_reflects_latest_flight(): void

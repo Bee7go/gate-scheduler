@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Flight;
+use App\Services\Flights\OpenSkyAuthService;
 use App\Services\Flights\OpenSkyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -21,21 +22,17 @@ class OpenSkyServiceFetchFlightsTest extends TestCase
 
     /**
      * Prepare service dependencies and ensure test cache state is isolated.
-     *
-     * @return void
      */
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new OpenSkyService();
+        $this->service = new OpenSkyService;
         Cache::flush();
     }
 
     /**
      * Ensure fetching flights returns expected payload and issues both auth and
      * flights API requests.
-     *
-     * @return void
      */
     public function test_fetch_flights_returns_json_and_sends_token_and_flights_requests_with_expected_params(): void
     {
@@ -60,15 +57,13 @@ class OpenSkyServiceFetchFlightsTest extends TestCase
 
         $this->assertTrue(
             $recordedUrls->contains(fn ($u) => str_contains($u, 'opensky-network.org/api/flights/arrival')),
-            'Expected an arrival flights request to be sent. Recorded: ' . $recordedUrls->implode(', ')
+            'Expected an arrival flights request to be sent. Recorded: '.$recordedUrls->implode(', ')
         );
     }
 
     /**
      * Ensure storeFlights performs upsert semantics and does not create duplicate
      * rows for existing aircraft-airport-direction combinations.
-     *
-     * @return void
      */
     public function test_store_flights_does_not_insert_duplicates_for_existing_flights(): void
     {
@@ -101,11 +96,19 @@ class OpenSkyServiceFetchFlightsTest extends TestCase
         ]);
     }
 
+    public function test_access_token_requires_complete_configuration(): void
+    {
+        config()->set('services.opensky.token_url', null);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('OpenSky credentials are not configured.');
+
+        app(OpenSkyAuthService::class)->getAccessToken();
+    }
+
     /**
      * Ensure rate-limited responses are retried and a later successful response
      * is returned to the caller.
-     *
-     * @return void
      */
     public function test_fetch_flights_retries_after_rate_limit_and_succeeds(): void
     {
@@ -131,8 +134,6 @@ class OpenSkyServiceFetchFlightsTest extends TestCase
     /**
      * Ensure cached fallback data is returned when retryable API failures persist
      * after all configured retry attempts.
-     *
-     * @return void
      */
     public function test_fetch_flights_uses_cached_fallback_when_api_fails_after_retries(): void
     {
@@ -158,8 +159,6 @@ class OpenSkyServiceFetchFlightsTest extends TestCase
     /**
      * Ensure malformed successful responses are rejected and replaced with cached
      * fallback payloads.
-     *
-     * @return void
      */
     public function test_fetch_flights_uses_cached_fallback_when_payload_is_malformed(): void
     {
@@ -182,8 +181,6 @@ class OpenSkyServiceFetchFlightsTest extends TestCase
     /**
      * Ensure the circuit breaker opens after threshold failures and prevents
      * subsequent live API flight requests while returning cached fallback data.
-     *
-     * @return void
      */
     public function test_circuit_breaker_opens_after_threshold_failures(): void
     {

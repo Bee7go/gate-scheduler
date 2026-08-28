@@ -13,13 +13,19 @@ class AuthenticateApiKey
     {
         $key = $request->header('X-Api-Key');
 
-        if (!$key) {
+        if (! $key) {
             return response()->json(['message' => 'API key required.'], 401);
         }
 
-        $apiKey = ApiKey::where('key', hash('sha256', $key))->first();
+        try {
+            $apiKey = ApiKey::where('key', hash('sha256', $key))->first();
+        } catch (\Throwable $exception) {
+            report($exception);
 
-        if (!$apiKey) {
+            return response()->json(['message' => 'Service unavailable.'], 503);
+        }
+
+        if (! $apiKey) {
             return response()->json(['message' => 'Invalid API key.'], 401);
         }
 
