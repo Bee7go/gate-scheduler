@@ -104,7 +104,9 @@ curl "https://your-app.test/api/v1/gates/status" \
 |--------|----------|------|-------------|
 | `POST` | `/register` | — | Create a new account |
 | `POST` | `/login` | — | Log in, get a Bearer token |
+| `GET` | `/api-keys` | Bearer | List your API keys |
 | `POST` | `/api-keys` | Bearer | Generate an API key |
+| `DELETE` | `/api-keys/{apiKey}` | Bearer | Revoke one of your API keys |
 | `GET` | `/allocations` | API key | List flight-to-gate allocations |
 | `GET` | `/gates/status` | API key | Gate statuses (free/occupied/maintenance) |
 | `GET` | `/gates/unavailabilities` | API key | List gate unavailability windows |

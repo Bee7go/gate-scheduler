@@ -16,7 +16,9 @@ Route::prefix('v1')->group(function () {
     Route::post('/register', [RegistrationController::class, 'store']);
 
     Route::middleware('auth.bearer')->group(function () {
+        Route::get('/api-keys', [ApiKeyController::class, 'index']);
         Route::post('/api-keys', [ApiKeyController::class, 'store']);
+        Route::delete('/api-keys/{apiKey}', [ApiKeyController::class, 'destroy']);
     });
 
     Route::middleware('auth.apikey')->group(function () {

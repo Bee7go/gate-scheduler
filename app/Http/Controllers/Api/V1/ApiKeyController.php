@@ -8,15 +8,32 @@ use App\Models\ApiKey;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 class ApiKeyController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        $apiKeys = $request->user()
+            ->apiKeys()
+            ->select(['id', 'name', 'description', 'last_used_at', 'expires_at', 'created_at'])
+            ->latest()
+            ->paginate(15);
+
+        return response()->json([
+            'current_page' => $apiKeys->currentPage(),
+            'data' => $apiKeys->items(),
+            'last_page' => $apiKeys->lastPage(),
+            'total' => $apiKeys->total(),
+        ]);
+    }
+
     public function store(CreateApiKeyRequest $request): JsonResponse
     {
         $validated = $request->validated();
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
@@ -42,5 +59,20 @@ class ApiKeyController extends Controller
                 'expires_at' => $apiKey->expires_at?->toJSON(),
             ],
         ], 201);
+    }
+
+    public function destroy(Request $request, int $apiKey): Response
+    {
+        $apiKey = $request->user()
+            ->apiKeys()
+            ->find($apiKey);
+
+        if (! $apiKey) {
+            abort(404);
+        }
+
+        $apiKey->delete();
+
+        return response()->noContent();
     }
 }

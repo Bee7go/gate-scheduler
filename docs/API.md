@@ -47,7 +47,9 @@ Both are shown only once when created — store them safely.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| `GET` | `/api-keys` | List your API keys |
 | `POST` | `/api-keys` | Generate a new API key |
+| `DELETE` | `/api-keys/{apiKey}` | Revoke one of your API keys |
 
 ### Data (API key required)
 
@@ -232,6 +234,46 @@ curl -X POST https://your-app.test/api/v1/api-keys \
 ```
 
 > Save the `api_key` — it's only shown once. Use it via the `X-Api-Key` header for all data endpoints below.
+
+---
+
+### `GET /api-keys`
+
+List API-key metadata for the authenticated user. Requires a **Bearer token**. The API key secret and its hash are never returned.
+
+#### Response (`200 OK`)
+
+```json
+{
+  "current_page": 1,
+  "data": [
+    {
+      "id": 1,
+      "name": "My App Key",
+      "description": "Key for production use",
+      "last_used_at": "2026-04-30T12:00:00.000000Z",
+      "expires_at": "2027-04-30T12:00:00.000000Z",
+      "created_at": "2026-04-30T12:00:00.000000Z"
+    }
+  ],
+  "last_page": 1,
+  "total": 1
+}
+```
+
+---
+
+### `DELETE /api-keys/{apiKey}`
+
+Revoke an API key owned by the authenticated user. Requires a **Bearer token**.
+
+#### Response (`204 No Content`)
+
+The API key is deleted and can no longer authenticate requests immediately.
+
+#### Response (`404 Not Found`)
+
+Returned when the key does not exist or does not belong to the authenticated user.
 
 ---
 
