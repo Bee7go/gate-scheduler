@@ -31,6 +31,7 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="AIRPORT_ICAO" value="EHAM"/>
         <env name="OPENSKY_TOKEN_URL" value="https://auth.opensky.test/oauth/token"/>
         <env name="OPENSKY_CLIENT_ID" value="test-client-id"/>
         <env name="OPENSKY_CLIENT_SECRET" value="test-client-secret"/>
