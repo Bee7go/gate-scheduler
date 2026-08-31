@@ -11,7 +11,7 @@ Prepare Airport Gate Scheduler for a reliable public deployment that demonstrate
 - Migrations already create the `jobs`, `failed_jobs`, `cache`, `cache_locks`, and application data tables.
 - The scheduler dispatches flight syncs every two minutes and reports every three minutes, with overlap protection.
 - Sync outcome, fallback usage, and circuit-breaker state are available through protected system endpoints.
-- No production deployment guide, host configuration, worker definition, scheduler definition, backup plan, or log-retention guidance exists yet.
+- Oracle Cloud deployment assets define the web, worker, scheduler, PostgreSQL, Redis, HTTPS, and backup topology.
 
 ## Recommended Production Shape
 
@@ -20,8 +20,8 @@ Use the following baseline unless the selected hosting provider makes an equival
 | Concern | Recommendation | Why |
 | --- | --- | --- |
 | Application | One web process | Serves the REST API. |
-| Database | Managed PostgreSQL | Durable application, queue, and audit data with backups. |
-| Cache and queue | Managed Redis | Fast shared cache, distributed locks, and queue coordination. |
+| Database | PostgreSQL container with a persistent VM volume | Durable application, queue, and audit data. |
+| Cache and queue | Redis container with a persistent VM volume | Fast shared cache, distributed locks, and queue coordination. |
 | Worker | One continuously running queue worker | Processes scheduled sync and report jobs. |
 | Scheduler | One scheduler process or one cron entry | Dispatches due jobs without duplicate schedules. |
 | Logs | Platform stdout or centralized log service | Keeps logs available across restarts and deployments. |
@@ -32,29 +32,29 @@ PostgreSQL and Redis are recommended for the portfolio deployment. The existing 
 
 ### Decision
 
-**Selected platform: Fly.io.**
+**Selected platform: Oracle Cloud Always Free.**
 
-Fly.io is a good fit because its Laravel deployment tooling supports Docker-based PHP deployments, managed PostgreSQL and Redis connections, release commands for migrations, and independently scalable web, worker, and scheduler process groups.
+One Always Free ARM VM runs Docker Compose services for the Laravel web API, queue worker, scheduler, PostgreSQL, Redis, and Caddy HTTPS proxy. This keeps the complete application topology available without a recurring hosting cost.
 
-The planned Fly.io topology is:
-
-| Fly.io process group | Application command | Count |
+| Compose service | Purpose | Count |
 | --- | --- | --- |
-| `web` | Laravel web server container entrypoint | 1 |
-| `worker` | `php artisan queue:work redis --sleep=3 --tries=3 --timeout=120 --max-time=3600` | 1 |
-| `scheduler` | Cron process that invokes `php artisan schedule:run` every minute | 1 |
+| `app` | Nginx/PHP-FPM REST API | 1 |
+| `worker` | Redis queue worker | 1 |
+| `scheduler` | Laravel scheduler loop | 1 |
+| `postgres` | Persistent application database | 1 |
+| `redis` | Shared cache, queue, and sessions | 1 |
+| `caddy` | TLS termination and reverse proxy | 1 |
 
-PostgreSQL and Redis will be provisioned as managed services in the same Fly.io region as the application. Application secrets will be stored with Fly.io secrets rather than in `fly.toml` or Git.
+Production secrets are stored in a server-only `.env.production` file with restricted permissions. It is ignored by Git and never copied into the application image.
 
 Choose a host that provides, or can connect to:
 
-- A PHP 8.4 runtime and web service.
-- A managed PostgreSQL database.
-- A managed Redis instance.
-- Separate long-running worker and scheduler processes, or a reliable cron facility.
-- Environment-secret management, deployment logs, and custom-domain TLS.
+- An Always Free ARM VM with Docker Engine and Compose.
+- A public IP, an Oracle Cloud ingress rule, and a host firewall that permit SSH, HTTP, and HTTPS.
+- A free DNS hostname for Caddy to obtain a TLS certificate.
+- Persistent Docker volumes and a scheduled PostgreSQL backup script.
 
-Record the selected platform and its process model in this document before adding provider-specific files. Avoid committing credentials, connection strings, API keys, or generated application keys.
+Avoid committing credentials, connection strings, API keys, generated application keys, or database backups.
 
 ## Phase 2: Production Configuration
 
@@ -136,9 +136,9 @@ Before first launch:
 
 ## Phase 5: Logs and Failed Jobs
 
-Use platform-managed stdout logging where available. Otherwise configure rotated daily logs and documented retention.
+Use Docker Compose stdout logging and documented retention.
 
-The selected Fly.io deployment uses `LOG_CHANNEL=stderr`, making logs available through `fly logs`. Schedule `queue:prune-failed --hours=336` daily to retain failed jobs for 14 days.
+The selected Oracle deployment uses `LOG_CHANNEL=stderr`, making logs available through `docker compose logs`. Schedule `queue:prune-failed --hours=336` daily to retain failed jobs for 14 days.
 
 Document the failed-job workflow:
 
@@ -175,9 +175,9 @@ Link the guide from `README.md` after it is implemented.
 
 Implementation notes:
 
-- `fly.toml` defines a `web` process served by Nginx/PHP-FPM, a `worker` process for Redis jobs, and a `scheduler` process using `php artisan schedule:work`.
-- The release command runs `php artisan migrate --force` before new Machines receive traffic.
-- Fly.io checks Laravel's built-in unauthenticated `/up` route. Protected system endpoints remain the operational checks for authenticated clients.
+- `docker-compose.production.yml` defines the API, worker, scheduler, PostgreSQL, Redis, and Caddy services.
+- Deployment runs `php artisan migrate --force` manually after PostgreSQL and Redis are healthy, before new application containers start.
+- Caddy checks the public HTTPS endpoint, while Laravel's built-in unauthenticated `/up` route remains the infrastructure health check. Protected system endpoints remain the operational checks for authenticated clients.
 
 ## Tests and Verification
 
