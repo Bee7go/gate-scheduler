@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\AuthenticateApiKey;
+use App\Http\Middleware\AuthenticateBearerToken;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -12,8 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'auth.apikey' => \App\Http\Middleware\AuthenticateApiKey::class,
-            'auth.bearer' => \App\Http\Middleware\AuthenticateBearerToken::class,
+            'auth.apikey' => AuthenticateApiKey::class,
+            'auth.bearer' => AuthenticateBearerToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

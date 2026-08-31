@@ -6,6 +6,7 @@ use App\Models\ApiKey;
 use App\Services\Flights\FlightSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Testing\TestResponse;
 use Mockery;
 use Tests\TestCase;
 
@@ -25,7 +26,7 @@ class SyncNowApiTest extends TestCase
         ]);
     }
 
-    private function apiPost(string $uri, array $data = []): \Illuminate\Testing\TestResponse
+    private function apiPost(string $uri, array $data = []): TestResponse
     {
         return $this->postJson($uri, $data, ['X-Api-Key' => $this->plainKey]);
     }

@@ -6,6 +6,7 @@ use App\Models\ApiKey;
 use App\Models\Gate;
 use App\Models\GateUnavailability;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class GateUnavailabilityApiTest extends TestCase
@@ -24,12 +25,12 @@ class GateUnavailabilityApiTest extends TestCase
         ]);
     }
 
-    private function apiGet(string $uri): \Illuminate\Testing\TestResponse
+    private function apiGet(string $uri): TestResponse
     {
         return $this->getJson($uri, ['X-Api-Key' => $this->plainKey]);
     }
 
-    private function apiPost(string $uri, array $data = []): \Illuminate\Testing\TestResponse
+    private function apiPost(string $uri, array $data = []): TestResponse
     {
         return $this->postJson($uri, $data, ['X-Api-Key' => $this->plainKey]);
     }

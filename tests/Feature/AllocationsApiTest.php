@@ -6,6 +6,7 @@ use App\Models\ApiKey;
 use App\Models\Gate;
 use App\Models\GateAllocation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class AllocationsApiTest extends TestCase
@@ -24,7 +25,7 @@ class AllocationsApiTest extends TestCase
         ]);
     }
 
-    private function apiGet(string $uri, array $headers = []): \Illuminate\Testing\TestResponse
+    private function apiGet(string $uri, array $headers = []): TestResponse
     {
         return $this->getJson($uri, array_merge(['X-Api-Key' => $this->plainKey], $headers));
     }

@@ -9,6 +9,8 @@ use App\Models\GateAllocation;
 use App\Models\GateUnavailability;
 use App\Models\SyncRun;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class HealthApiTest extends TestCase
@@ -27,7 +29,7 @@ class HealthApiTest extends TestCase
         ]);
     }
 
-    private function apiGet(string $uri): \Illuminate\Testing\TestResponse
+    private function apiGet(string $uri): TestResponse
     {
         return $this->getJson($uri, ['X-Api-Key' => $this->plainKey]);
     }
@@ -162,7 +164,7 @@ class HealthApiTest extends TestCase
 
     public function test_returns_503_and_degraded_status_when_database_unreachable(): void
     {
-        \Illuminate\Support\Facades\DB::shouldReceive('connection')
+        DB::shouldReceive('connection')
             ->andThrow(new \RuntimeException('DB down'));
 
         $response = $this->apiGet('/api/v1/system/health');

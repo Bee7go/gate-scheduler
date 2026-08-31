@@ -8,6 +8,7 @@ use App\Models\Gate;
 use App\Models\GateAllocation;
 use App\Models\GateUnavailability;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class GateStatusApiTest extends TestCase
@@ -26,7 +27,7 @@ class GateStatusApiTest extends TestCase
         ]);
     }
 
-    private function apiGet(string $uri): \Illuminate\Testing\TestResponse
+    private function apiGet(string $uri): TestResponse
     {
         return $this->getJson($uri, ['X-Api-Key' => $this->plainKey]);
     }
