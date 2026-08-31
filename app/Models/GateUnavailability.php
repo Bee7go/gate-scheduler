@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class GateUnavailability extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'gate_id',
         'start_at',

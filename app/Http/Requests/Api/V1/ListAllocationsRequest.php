@@ -25,7 +25,7 @@ class ListAllocationsRequest extends FormRequest
                 Rule::when($this->filled('occupied_from'), 'after_or_equal:occupied_from'),
             ],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            'page'     => ['sometimes', 'integer', 'min:1'],
+            'page' => ['sometimes', 'integer', 'min:1'],
         ];
     }
 }

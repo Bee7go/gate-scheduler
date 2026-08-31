@@ -22,7 +22,7 @@ class StatisticsApiTest extends TestCase
 
         ApiKey::create([
             'name' => 'Test Client',
-            'key'  => hash('sha256', $this->plainKey),
+            'key' => hash('sha256', $this->plainKey),
         ]);
     }
 
@@ -105,20 +105,20 @@ class StatisticsApiTest extends TestCase
 
         $flight = Flight::factory()->create([
             'first_seen_at' => '2026-04-10 10:00:00',
-            'direction'     => 'arrival',
+            'direction' => 'arrival',
         ]);
 
         GateAllocation::factory()->create([
-            'gate_id'        => $gate1->id,
-            'flight_id'      => $flight->id,
-            'occupied_from'  => '2026-04-10 10:00:00',
+            'gate_id' => $gate1->id,
+            'flight_id' => $flight->id,
+            'occupied_from' => '2026-04-10 10:00:00',
             'occupied_until' => '2026-04-10 11:30:00',
         ]);
 
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate2->id,
+            'gate_id' => $gate2->id,
             'start_at' => '2026-04-15 08:00:00',
-            'end_at'   => '2026-04-15 12:00:00',
+            'end_at' => '2026-04-15 12:00:00',
         ]);
 
         $data = $this->apiGet('/api/v1/statistics?from=2026-04-01&to=2026-04-30')
@@ -138,22 +138,22 @@ class StatisticsApiTest extends TestCase
 
         $arrival1 = Flight::factory()->create([
             'first_seen_at' => '2026-04-10 10:00:00',
-            'direction'     => 'arrival',
+            'direction' => 'arrival',
         ]);
         $arrival2 = Flight::factory()->create([
             'first_seen_at' => '2026-04-11 10:00:00',
-            'direction'     => 'arrival',
+            'direction' => 'arrival',
         ]);
         $departure1 = Flight::factory()->create([
             'first_seen_at' => '2026-04-12 10:00:00',
-            'direction'     => 'departure',
+            'direction' => 'departure',
         ]);
 
         // Only allocate arrival1
         GateAllocation::factory()->create([
-            'gate_id'        => $gate->id,
-            'flight_id'      => $arrival1->id,
-            'occupied_from'  => '2026-04-10 10:00:00',
+            'gate_id' => $gate->id,
+            'flight_id' => $arrival1->id,
+            'occupied_from' => '2026-04-10 10:00:00',
             'occupied_until' => '2026-04-10 11:30:00',
         ]);
 
@@ -178,16 +178,16 @@ class StatisticsApiTest extends TestCase
         $flight2 = Flight::factory()->create(['first_seen_at' => '2026-04-11 10:00:00', 'direction' => 'arrival']);
 
         GateAllocation::factory()->create([
-            'gate_id'        => $gate->id,
-            'flight_id'      => $flight1->id,
-            'occupied_from'  => '2026-04-10 10:00:00',
+            'gate_id' => $gate->id,
+            'flight_id' => $flight1->id,
+            'occupied_from' => '2026-04-10 10:00:00',
             'occupied_until' => '2026-04-10 11:00:00', // 60 min
         ]);
 
         GateAllocation::factory()->create([
-            'gate_id'        => $gate->id,
-            'flight_id'      => $flight2->id,
-            'occupied_from'  => '2026-04-11 10:00:00',
+            'gate_id' => $gate->id,
+            'flight_id' => $flight2->id,
+            'occupied_from' => '2026-04-11 10:00:00',
             'occupied_until' => '2026-04-11 12:00:00', // 120 min
         ]);
 
@@ -247,14 +247,14 @@ class StatisticsApiTest extends TestCase
         foreach ([1, 3, 2] as $i => $count) {
             for ($j = 0; $j < $count; $j++) {
                 $flight = Flight::factory()->create([
-                    'first_seen_at' => "2026-04-10 " . (10 + $j) . ":00:00",
-                    'direction'     => 'arrival',
+                    'first_seen_at' => '2026-04-10 '.(10 + $j).':00:00',
+                    'direction' => 'arrival',
                 ]);
                 GateAllocation::factory()->create([
-                    'gate_id'        => $gates[$i]->id,
-                    'flight_id'      => $flight->id,
-                    'occupied_from'  => "2026-04-" . (10 + $i) . " " . (10 + $j) . ":00:00",
-                    'occupied_until' => "2026-04-" . (10 + $i) . " " . (11 + $j) . ":00:00",
+                    'gate_id' => $gates[$i]->id,
+                    'flight_id' => $flight->id,
+                    'occupied_from' => '2026-04-'.(10 + $i).' '.(10 + $j).':00:00',
+                    'occupied_until' => '2026-04-'.(10 + $i).' '.(11 + $j).':00:00',
                 ]);
             }
         }
@@ -323,19 +323,19 @@ class StatisticsApiTest extends TestCase
         // Flight outside period
         Flight::factory()->create([
             'first_seen_at' => '2026-03-15 10:00:00',
-            'direction'     => 'arrival',
+            'direction' => 'arrival',
         ]);
 
         // Flight inside period
         $insideFlight = Flight::factory()->create([
             'first_seen_at' => '2026-04-10 10:00:00',
-            'direction'     => 'arrival',
+            'direction' => 'arrival',
         ]);
 
         GateAllocation::factory()->create([
-            'gate_id'        => $gate->id,
-            'flight_id'      => $insideFlight->id,
-            'occupied_from'  => '2026-04-10 10:00:00',
+            'gate_id' => $gate->id,
+            'flight_id' => $insideFlight->id,
+            'occupied_from' => '2026-04-10 10:00:00',
             'occupied_until' => '2026-04-10 11:30:00',
         ]);
 

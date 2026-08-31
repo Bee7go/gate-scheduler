@@ -6,7 +6,6 @@ use App\Models\ApiKey;
 use App\Services\Flights\FlightSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\RateLimiter;
 use Mockery;
 use Tests\TestCase;
 
@@ -22,7 +21,7 @@ class SyncNowApiTest extends TestCase
 
         ApiKey::create([
             'name' => 'Test Client',
-            'key'  => hash('sha256', $this->plainKey),
+            'key' => hash('sha256', $this->plainKey),
         ]);
     }
 
@@ -40,10 +39,10 @@ class SyncNowApiTest extends TestCase
     public function test_triggers_sync_and_returns_summary(): void
     {
         $expectedSummary = [
-            'arrivals_fetched'   => 5,
+            'arrivals_fetched' => 5,
             'departures_fetched' => 3,
-            'allocation'         => [
-                'allocated'   => 4,
+            'allocation' => [
+                'allocated' => 4,
                 'unallocated' => 1,
             ],
         ];
@@ -64,9 +63,9 @@ class SyncNowApiTest extends TestCase
     {
         $mock = Mockery::mock(FlightSyncService::class);
         $mock->shouldReceive('sync')->once()->andReturn([
-            'arrivals_fetched'   => 0,
+            'arrivals_fetched' => 0,
             'departures_fetched' => 0,
-            'allocation'         => [],
+            'allocation' => [],
         ]);
         $this->app->instance(FlightSyncService::class, $mock);
 
@@ -96,9 +95,9 @@ class SyncNowApiTest extends TestCase
     {
         $mock = Mockery::mock(FlightSyncService::class);
         $mock->shouldReceive('sync')->once()->andReturn([
-            'arrivals_fetched'   => 0,
+            'arrivals_fetched' => 0,
             'departures_fetched' => 0,
-            'allocation'         => [],
+            'allocation' => [],
         ]);
         $this->app->instance(FlightSyncService::class, $mock);
 
@@ -110,9 +109,9 @@ class SyncNowApiTest extends TestCase
         // Lock should be released — a second call should succeed
         $mock2 = Mockery::mock(FlightSyncService::class);
         $mock2->shouldReceive('sync')->once()->andReturn([
-            'arrivals_fetched'   => 0,
+            'arrivals_fetched' => 0,
             'departures_fetched' => 0,
-            'allocation'         => [],
+            'allocation' => [],
         ]);
         $this->app->instance(FlightSyncService::class, $mock2);
 
@@ -123,9 +122,9 @@ class SyncNowApiTest extends TestCase
     {
         $mock = Mockery::mock(FlightSyncService::class);
         $mock->shouldReceive('sync')->once()->andReturn([
-            'arrivals_fetched'   => 0,
+            'arrivals_fetched' => 0,
             'departures_fetched' => 0,
-            'allocation'         => [],
+            'allocation' => [],
         ]);
         $this->app->instance(FlightSyncService::class, $mock);
 

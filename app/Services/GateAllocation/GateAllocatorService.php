@@ -19,14 +19,10 @@ class GateAllocatorService
     public function __construct(
         private readonly GateAvailabilityService $availabilityService,
         private readonly GateSelectionStrategyInterface $gateSelectionStrategy
-    ) {
-    }
+    ) {}
 
     /**
      * Process unallocated flights and assign them to gates
-
-     * @param int $limit
-     * @return array
      */
     public function assignUnallocatedFlights(int $limit = 100): array
     {
@@ -55,7 +51,7 @@ class GateAllocatorService
                     $stats['unassigned']++;
                 }
             } catch (Exception $e) {
-                Log::error("Failed to allocate flight {$flight->id}: " . $e->getMessage());
+                Log::error("Failed to allocate flight {$flight->id}: ".$e->getMessage());
                 $stats['errors'][] = $flight->id;
             }
         }
@@ -65,20 +61,18 @@ class GateAllocatorService
 
     /**
      * Allocate a flight to a gate
-     *
-     * @param Flight $flight
-     * @return Gate|null
      */
     private function allocateFlightToGate(Flight $flight): ?Gate
     {
-        if (!$flight->first_seen_at) {
+        if (! $flight->first_seen_at) {
             Log::warning('gates.allocate.missing_first_seen_at', [
                 'flight_id' => $flight->id,
             ]);
+
             return null;
         }
         $from = $flight->first_seen_at;
-        $until = (clone $from)->addMinutes((int)config('services.gates.occupation_minutes', 90));
+        $until = (clone $from)->addMinutes((int) config('services.gates.occupation_minutes', 90));
 
         $gates = $this->gateSelectionStrategy->getOrderedGates($flight->first_seen_at);
 
@@ -95,7 +89,7 @@ class GateAllocatorService
 
                 Log::info('gates.allocate.success', [
                     'flight_id' => $flight->id,
-                    'gate_id'   => $gate->id,
+                    'gate_id' => $gate->id,
                 ]);
 
                 return $gate;
@@ -111,9 +105,6 @@ class GateAllocatorService
 
     /**
      * Fetch flights waiting for allocation
-     *
-     * @param int $limit
-     * @return Collection
      */
     private function getUnallocatedFlights(int $limit): Collection
     {

@@ -31,9 +31,9 @@ class AllocationController extends Controller
 
         return response()->json([
             'current_page' => $allocations->currentPage(),
-            'data'         => $allocations->items(),
-            'last_page'    => $allocations->lastPage(),
-            'total'        => $allocations->total(),
+            'data' => $allocations->items(),
+            'last_page' => $allocations->lastPage(),
+            'total' => $allocations->total(),
         ]);
     }
 }

@@ -20,7 +20,7 @@ class FlightFactory extends Factory
         return [
             'icao24' => strtolower(fake()->bothify('??####')),
             'airport_icao' => fake()->randomElement([
-                'EDDF', 'EGLL', 'LFPG', 'LROP'
+                'EDDF', 'EGLL', 'LFPG', 'LROP',
             ]),
             'direction' => fake()->randomElement([
                 'arrival',

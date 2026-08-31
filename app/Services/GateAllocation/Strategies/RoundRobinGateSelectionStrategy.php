@@ -11,7 +11,7 @@ class RoundRobinGateSelectionStrategy implements GateSelectionStrategyInterface
 {
     private const CACHE_KEY = 'gates.round_robin.last_gate_id';
 
-    public function getOrderedGates(DateTimeInterface $flightStart = null): Collection
+    public function getOrderedGates(?DateTimeInterface $flightStart = null): Collection
     {
         $gates = Gate::orderBy('code')->get();
         if ($gates->isEmpty()) {
@@ -19,7 +19,7 @@ class RoundRobinGateSelectionStrategy implements GateSelectionStrategyInterface
         }
 
         $lastGateId = Cache::get(self::CACHE_KEY);
-        if (!$lastGateId) {
+        if (! $lastGateId) {
             return $gates;
         }
 

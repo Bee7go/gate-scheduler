@@ -14,7 +14,7 @@ class AuthenticateBearerToken
     {
         $tokenValue = $request->bearerToken();
 
-        if (!$tokenValue) {
+        if (! $tokenValue) {
             return response()->json(['message' => 'Bearer token required.'], 401);
         }
 
@@ -24,7 +24,7 @@ class AuthenticateBearerToken
             ->where('expires_at', '>', now())
             ->first();
 
-        if (!$accessToken || !$accessToken->user) {
+        if (! $accessToken || ! $accessToken->user) {
             return response()->json(['message' => 'Invalid or expired bearer token.'], 401);
         }
 

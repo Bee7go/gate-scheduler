@@ -19,7 +19,7 @@ class GateAvailabilityServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new GateAvailabilityService();
+        $this->service = new GateAvailabilityService;
     }
 
     public function test_gate_is_not_available_during_unavailability_window(): void
@@ -55,7 +55,7 @@ class GateAvailabilityServiceTest extends TestCase
         $until = new DateTime('2025-01-12 13:30:00');
 
         $isGateAvailable = $this->service->isGateAvailable($gate->id, $from, $until);
-        $this->assertTrue($isGateAvailable, "Gate should be available outside of unavailability window");
+        $this->assertTrue($isGateAvailable, 'Gate should be available outside of unavailability window');
     }
 
     public function test_gate_is_not_available_when_allocation_conflict_exists(): void
@@ -79,7 +79,7 @@ class GateAvailabilityServiceTest extends TestCase
             $until
         );
 
-        $this->assertFalse($available, "Gate should not be available because of existing allocation");
+        $this->assertFalse($available, 'Gate should not be available because of existing allocation');
     }
 
     public function test_gate_is_available_when_no_allocations_exist(): void
@@ -95,7 +95,7 @@ class GateAvailabilityServiceTest extends TestCase
             $until
         );
 
-        $this->assertTrue($available, "Gate should be available because no allocations exist");
+        $this->assertTrue($available, 'Gate should be available because no allocations exist');
     }
 
     public function test_gate_is_available_when_flight_starts_at_unavailability_end()
@@ -125,5 +125,4 @@ class GateAvailabilityServiceTest extends TestCase
 
         $this->assertFalse($this->service->isGateAvailable($gate->id, $from, $until));
     }
-
 }

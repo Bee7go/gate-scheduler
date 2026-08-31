@@ -15,7 +15,7 @@ class StatisticsRequest extends FormRequest
     {
         return [
             'from' => ['required', 'date'],
-            'to'   => ['required', 'date', 'after:from'],
+            'to' => ['required', 'date', 'after:from'],
         ];
     }
 }

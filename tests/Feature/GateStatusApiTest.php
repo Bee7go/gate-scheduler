@@ -22,7 +22,7 @@ class GateStatusApiTest extends TestCase
 
         ApiKey::create([
             'name' => 'Test Client',
-            'key'  => hash('sha256', $this->plainKey),
+            'key' => hash('sha256', $this->plainKey),
         ]);
     }
 
@@ -80,15 +80,15 @@ class GateStatusApiTest extends TestCase
     {
         $gate = Gate::factory()->create(['code' => 'G1']);
         $flight = Flight::factory()->create([
-            'icao24'       => '4ba9cc',
+            'icao24' => '4ba9cc',
             'airport_icao' => 'EHAM',
-            'direction'    => 'arrival',
+            'direction' => 'arrival',
         ]);
 
         GateAllocation::factory()->create([
-            'gate_id'        => $gate->id,
-            'flight_id'      => $flight->id,
-            'occupied_from'  => '2026-04-04 16:00:00',
+            'gate_id' => $gate->id,
+            'flight_id' => $flight->id,
+            'occupied_from' => '2026-04-04 16:00:00',
             'occupied_until' => '2026-04-04 18:36:01',
         ]);
 
@@ -107,8 +107,8 @@ class GateStatusApiTest extends TestCase
         $gate = Gate::factory()->create(['code' => 'G1']);
 
         GateAllocation::factory()->create([
-            'gate_id'        => $gate->id,
-            'occupied_from'  => '2026-04-04 10:00:00',
+            'gate_id' => $gate->id,
+            'occupied_from' => '2026-04-04 10:00:00',
             'occupied_until' => '2026-04-04 12:00:00',
         ]);
 
@@ -125,10 +125,10 @@ class GateStatusApiTest extends TestCase
         $gate = Gate::factory()->create(['code' => 'G3']);
 
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-04-04 15:00:00',
-            'end_at'   => '2026-04-04 19:00:00',
-            'reason'   => 'maintenance',
+            'end_at' => '2026-04-04 19:00:00',
+            'reason' => 'maintenance',
         ]);
 
         $response = $this->apiGet('/api/v1/gates/status?at=2026-04-04T17:00:00Z');
@@ -160,8 +160,8 @@ class GateStatusApiTest extends TestCase
         $gate = Gate::factory()->create(['code' => 'G1']);
 
         GateAllocation::factory()->create([
-            'gate_id'        => $gate->id,
-            'occupied_from'  => now()->subMinutes(30),
+            'gate_id' => $gate->id,
+            'occupied_from' => now()->subMinutes(30),
             'occupied_until' => now()->addMinutes(30),
         ]);
 
@@ -189,22 +189,22 @@ class GateStatusApiTest extends TestCase
         $gateMaint = Gate::factory()->create(['code' => 'G3']);
 
         $flight = Flight::factory()->create([
-            'icao24'       => '4ba9cc',
+            'icao24' => '4ba9cc',
             'airport_icao' => 'EHAM',
-            'direction'    => 'arrival',
+            'direction' => 'arrival',
         ]);
 
         GateAllocation::factory()->create([
-            'gate_id'        => $gateOccupied->id,
-            'flight_id'      => $flight->id,
-            'occupied_from'  => '2026-04-04 16:00:00',
+            'gate_id' => $gateOccupied->id,
+            'flight_id' => $flight->id,
+            'occupied_from' => '2026-04-04 16:00:00',
             'occupied_until' => '2026-04-04 18:36:01',
         ]);
 
         GateUnavailability::factory()->create([
-            'gate_id'  => $gateMaint->id,
+            'gate_id' => $gateMaint->id,
             'start_at' => '2026-04-04 15:00:00',
-            'end_at'   => '2026-04-04 20:00:00',
+            'end_at' => '2026-04-04 20:00:00',
         ]);
 
         $response = $this->apiGet('/api/v1/gates/status?at=2026-04-04T17:00:00Z');

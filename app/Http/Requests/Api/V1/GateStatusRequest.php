@@ -14,7 +14,7 @@ class GateStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'at'        => ['sometimes', 'date'],
+            'at' => ['sometimes', 'date'],
             'gate_code' => ['sometimes', 'string', 'max:10'],
         ];
     }

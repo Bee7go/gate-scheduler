@@ -78,5 +78,4 @@ class LoginApiTest extends TestCase
                 'message' => 'Invalid credentials.',
             ]);
     }
-
 }

@@ -48,7 +48,7 @@ class GateAllocatorServiceTest extends TestCase
         $this->assertSame($g2->id, $allocation->gate_id);
 
         $from = $flight->first_seen_at;
-        $until = (clone $from)->addMinutes((int)config('services.gates.occupation_minutes', 90));
+        $until = (clone $from)->addMinutes((int) config('services.gates.occupation_minutes', 90));
 
         $this->assertSame($from->format('Y-m-d H:i:s'), $allocation->occupied_from->format('Y-m-d H:i:s'));
         $this->assertSame($until->format('Y-m-d H:i:s'), $allocation->occupied_until->format('Y-m-d H:i:s'));
@@ -204,9 +204,8 @@ class GateAllocatorServiceTest extends TestCase
 
             $this->assertTrue(
                 $current->occupied_until <= $next->occupied_from,
-                "Gate allocations overlap!"
+                'Gate allocations overlap!'
             );
         }
     }
-
 }

@@ -14,7 +14,7 @@ class GateUnavailabilitiesSeeder extends Seeder
     {
         $gate = DB::table('gates')->where('code', 'G8')->first();
 
-        if (!$gate) {
+        if (! $gate) {
             return;
         }
 

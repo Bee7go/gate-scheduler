@@ -15,8 +15,8 @@ class ListGateUnavailabilitiesRequest extends FormRequest
     {
         return [
             'gate_id' => ['sometimes', 'integer', 'min:1'],
-            'from'    => ['sometimes', 'date'],
-            'to'      => ['sometimes', 'date', 'after_or_equal:from'],
+            'from' => ['sometimes', 'date'],
+            'to' => ['sometimes', 'date', 'after_or_equal:from'],
         ];
     }
 }

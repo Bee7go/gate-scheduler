@@ -20,7 +20,7 @@ class GateUnavailabilityApiTest extends TestCase
 
         ApiKey::create([
             'name' => 'Test Client',
-            'key'  => hash('sha256', $this->plainKey),
+            'key' => hash('sha256', $this->plainKey),
         ]);
     }
 
@@ -93,14 +93,14 @@ class GateUnavailabilityApiTest extends TestCase
         $gate = Gate::factory()->create();
 
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-04-01 08:00:00',
-            'end_at'   => '2026-04-01 10:00:00',
+            'end_at' => '2026-04-01 10:00:00',
         ]);
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-05-10 08:00:00',
-            'end_at'   => '2026-05-10 12:00:00',
+            'end_at' => '2026-05-10 12:00:00',
         ]);
 
         $response = $this->apiGet('/api/v1/gates/unavailabilities?from=2026-05-01T00:00:00Z');
@@ -116,14 +116,14 @@ class GateUnavailabilityApiTest extends TestCase
         $gate = Gate::factory()->create();
 
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-05-10 08:00:00',
-            'end_at'   => '2026-05-10 12:00:00',
+            'end_at' => '2026-05-10 12:00:00',
         ]);
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-06-15 08:00:00',
-            'end_at'   => '2026-06-15 12:00:00',
+            'end_at' => '2026-06-15 12:00:00',
         ]);
 
         $response = $this->apiGet('/api/v1/gates/unavailabilities?to=2026-05-31T23:59:59Z');
@@ -141,27 +141,27 @@ class GateUnavailabilityApiTest extends TestCase
 
         // Matching: correct gate + in range
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-05-10 08:00:00',
-            'end_at'   => '2026-05-10 12:00:00',
+            'end_at' => '2026-05-10 12:00:00',
         ]);
         // Matching: correct gate + in range
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-05-15 14:00:00',
-            'end_at'   => '2026-05-15 16:30:00',
+            'end_at' => '2026-05-15 16:30:00',
         ]);
         // Wrong gate
         GateUnavailability::factory()->create([
-            'gate_id'  => $otherGate->id,
+            'gate_id' => $otherGate->id,
             'start_at' => '2026-05-12 08:00:00',
-            'end_at'   => '2026-05-12 10:00:00',
+            'end_at' => '2026-05-12 10:00:00',
         ]);
         // Out of range
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-06-01 08:00:00',
-            'end_at'   => '2026-06-01 10:00:00',
+            'end_at' => '2026-06-01 10:00:00',
         ]);
 
         $response = $this->apiGet(
@@ -202,14 +202,14 @@ class GateUnavailabilityApiTest extends TestCase
         $gate = Gate::factory()->create();
 
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-05-15 14:00:00',
-            'end_at'   => '2026-05-15 16:00:00',
+            'end_at' => '2026-05-15 16:00:00',
         ]);
         GateUnavailability::factory()->create([
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-05-10 08:00:00',
-            'end_at'   => '2026-05-10 10:00:00',
+            'end_at' => '2026-05-10 10:00:00',
         ]);
 
         $response = $this->apiGet('/api/v1/gates/unavailabilities');
@@ -227,10 +227,10 @@ class GateUnavailabilityApiTest extends TestCase
         $gate = Gate::factory()->create();
 
         $response = $this->apiPost('/api/v1/gates/unavailabilities', [
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-05-10T08:00:00Z',
-            'end_at'   => '2026-05-10T12:00:00Z',
-            'reason'   => 'Maintenance',
+            'end_at' => '2026-05-10T12:00:00Z',
+            'reason' => 'Maintenance',
         ]);
 
         $response->assertCreated()
@@ -242,7 +242,7 @@ class GateUnavailabilityApiTest extends TestCase
 
         $this->assertDatabaseHas('gate_unavailabilities', [
             'gate_id' => $gate->id,
-            'reason'  => 'Maintenance',
+            'reason' => 'Maintenance',
         ]);
     }
 
@@ -251,9 +251,9 @@ class GateUnavailabilityApiTest extends TestCase
         $gate = Gate::factory()->create();
 
         $response = $this->apiPost('/api/v1/gates/unavailabilities', [
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-05-10T08:00:00Z',
-            'end_at'   => '2026-05-10T12:00:00Z',
+            'end_at' => '2026-05-10T12:00:00Z',
         ]);
 
         $response->assertCreated()
@@ -265,10 +265,10 @@ class GateUnavailabilityApiTest extends TestCase
         $gate = Gate::factory()->create();
 
         $response = $this->apiPost('/api/v1/gates/unavailabilities', [
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-05-10T08:00:00Z',
-            'end_at'   => '2026-05-10T12:00:00Z',
-            'reason'   => null,
+            'end_at' => '2026-05-10T12:00:00Z',
+            'reason' => null,
         ]);
 
         $response->assertCreated()
@@ -285,9 +285,9 @@ class GateUnavailabilityApiTest extends TestCase
     public function test_create_rejects_nonexistent_gate(): void
     {
         $this->apiPost('/api/v1/gates/unavailabilities', [
-            'gate_id'  => 9999,
+            'gate_id' => 9999,
             'start_at' => '2026-05-10T08:00:00Z',
-            'end_at'   => '2026-05-10T12:00:00Z',
+            'end_at' => '2026-05-10T12:00:00Z',
         ])->assertStatus(422)
             ->assertJsonValidationErrors('gate_id');
     }
@@ -297,9 +297,9 @@ class GateUnavailabilityApiTest extends TestCase
         $gate = Gate::factory()->create();
 
         $this->apiPost('/api/v1/gates/unavailabilities', [
-            'gate_id'  => $gate->id,
+            'gate_id' => $gate->id,
             'start_at' => '2026-05-10T12:00:00Z',
-            'end_at'   => '2026-05-10T08:00:00Z',
+            'end_at' => '2026-05-10T08:00:00Z',
         ])->assertStatus(422)
             ->assertJsonValidationErrors('end_at');
     }
@@ -307,9 +307,9 @@ class GateUnavailabilityApiTest extends TestCase
     public function test_create_requires_api_key(): void
     {
         $this->postJson('/api/v1/gates/unavailabilities', [
-            'gate_id'  => 1,
+            'gate_id' => 1,
             'start_at' => '2026-05-10T08:00:00Z',
-            'end_at'   => '2026-05-10T12:00:00Z',
+            'end_at' => '2026-05-10T12:00:00Z',
         ])->assertStatus(401);
     }
 }

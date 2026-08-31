@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\ApiKey;
-use App\Models\Flight;
 use App\Models\Gate;
 use App\Models\GateAllocation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,7 +20,7 @@ class AllocationsApiTest extends TestCase
 
         ApiKey::create([
             'name' => 'Test Client',
-            'key'  => hash('sha256', $this->plainKey),
+            'key' => hash('sha256', $this->plainKey),
         ]);
     }
 

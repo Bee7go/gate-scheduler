@@ -41,13 +41,13 @@ class GateStatusController extends Controller
                 $flight = $allocation->flight;
 
                 return [
-                    'gate_id'        => $gate->id,
-                    'gate_code'      => $gate->code,
-                    'status'         => 'occupied',
+                    'gate_id' => $gate->id,
+                    'gate_code' => $gate->code,
+                    'status' => 'occupied',
                     'occupied_until' => $allocation->occupied_until->toISOString(),
-                    'flight'         => [
-                        'id'        => $flight->id,
-                        'icao24'    => $flight->icao24,
+                    'flight' => [
+                        'id' => $flight->id,
+                        'icao24' => $flight->icao24,
                         'direction' => $flight->direction,
                     ],
                 ];
@@ -55,20 +55,20 @@ class GateStatusController extends Controller
 
             if ($unavailability) {
                 return [
-                    'gate_id'        => $gate->id,
-                    'gate_code'      => $gate->code,
-                    'status'         => 'maintenance',
+                    'gate_id' => $gate->id,
+                    'gate_code' => $gate->code,
+                    'status' => 'maintenance',
                     'occupied_until' => null,
-                    'flight'         => null,
+                    'flight' => null,
                 ];
             }
 
             return [
-                'gate_id'        => $gate->id,
-                'gate_code'      => $gate->code,
-                'status'         => 'free',
+                'gate_id' => $gate->id,
+                'gate_code' => $gate->code,
+                'status' => 'free',
                 'occupied_until' => null,
-                'flight'         => null,
+                'flight' => null,
             ];
         });
 

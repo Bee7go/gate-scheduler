@@ -18,10 +18,10 @@ class GateSelectionStrategyFactory
         $key = $strategyKey ?: 'greedy';
 
         $class = $this->map[$key] ?? null;
-        if (!$class) {
+        if (! $class) {
             throw new InvalidArgumentException("Unknown gate allocation strategy [{$key}].");
         }
 
-        return new $class();
+        return new $class;
     }
 }

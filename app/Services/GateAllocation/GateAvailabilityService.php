@@ -7,14 +7,10 @@ use DateTimeInterface;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use InvalidArgumentException;
 
-class GateAvailabilityService {
+class GateAvailabilityService
+{
     /**
      * Checks if a gate is available for a given time range
-     *
-     * @param int $gateId
-     * @param DateTimeInterface $from
-     * @param DateTimeInterface $until
-     * @return bool
      */
     public function isGateAvailable(int $gateId, DateTimeInterface $from, DateTimeInterface $until): bool
     {
@@ -30,7 +26,7 @@ class GateAvailabilityService {
 
         $gate = Gate::find($gateId);
 
-        if (!$gate) {
+        if (! $gate) {
             throw new ModelNotFoundException("Gate {$gateId} not found.");
         }
 
@@ -50,6 +46,6 @@ class GateAvailabilityService {
             ->where('end_at', '>', $from)
             ->exists();
 
-        return !$hasUnavailabilityConflict;
+        return ! $hasUnavailabilityConflict;
     }
 }

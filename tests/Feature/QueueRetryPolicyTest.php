@@ -5,11 +5,11 @@ namespace Tests\Feature;
 use App\Jobs\GenerateGateAllocationReportJob;
 use App\Jobs\SyncFlightsJob;
 use App\Models\Gate;
-use App\Services\Flights\OpenSkyCircuitBreaker;
 use App\Services\Flights\FlightSyncService;
+use App\Services\Flights\OpenSkyCircuitBreaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Mockery;
 use Tests\TestCase;
@@ -54,7 +54,7 @@ class QueueRetryPolicyTest extends TestCase
             ], 200),
         ]);
 
-        $job = new SyncFlightsJob();
+        $job = new SyncFlightsJob;
         $job->handle(app(FlightSyncService::class));
 
         $this->assertDatabaseHas('flights', ['icao24' => 'TEST123']);
@@ -64,8 +64,8 @@ class QueueRetryPolicyTest extends TestCase
 
     public function test_job_retry_configuration_is_single_try(): void
     {
-        $syncJob = new SyncFlightsJob();
-        $reportJob = new GenerateGateAllocationReportJob();
+        $syncJob = new SyncFlightsJob;
+        $reportJob = new GenerateGateAllocationReportJob;
 
         $this->assertSame(1, $syncJob->tries);
         $this->assertSame([30, 120, 300], $syncJob->backoff);
@@ -82,7 +82,7 @@ class QueueRetryPolicyTest extends TestCase
                 return ($context['message'] ?? null) === 'OpenSky API timeout';
             }));
 
-        $job = new SyncFlightsJob();
+        $job = new SyncFlightsJob;
         $exception = new \Exception('OpenSky API timeout');
 
         $job->failed($exception);
@@ -92,7 +92,7 @@ class QueueRetryPolicyTest extends TestCase
     {
         config()->set('services.opensky.breaker_failure_threshold', 1);
 
-        $breaker = new OpenSkyCircuitBreaker();
+        $breaker = new OpenSkyCircuitBreaker;
         $breaker->recordFailure('EHAM', 'arrival');
         $breaker->recordFailure('EHAM', 'departure');
 
@@ -106,7 +106,7 @@ class QueueRetryPolicyTest extends TestCase
 
         $start = microtime(true);
 
-        $job = new SyncFlightsJob();
+        $job = new SyncFlightsJob;
         $job->handle(app(FlightSyncService::class));
 
         $durationSeconds = microtime(true) - $start;

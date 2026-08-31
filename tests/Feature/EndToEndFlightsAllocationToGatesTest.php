@@ -10,7 +10,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
-
 class EndToEndFlightsAllocationToGatesTest extends TestCase
 {
     use RefreshDatabase;

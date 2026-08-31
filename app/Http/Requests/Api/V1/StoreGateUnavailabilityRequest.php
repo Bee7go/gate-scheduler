@@ -14,10 +14,10 @@ class StoreGateUnavailabilityRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'gate_id'  => ['required', 'integer', 'exists:gates,id'],
+            'gate_id' => ['required', 'integer', 'exists:gates,id'],
             'start_at' => ['required', 'date'],
-            'end_at'   => ['required', 'date', 'after:start_at'],
-            'reason'   => ['nullable', 'string', 'max:255'],
+            'end_at' => ['required', 'date', 'after:start_at'],
+            'reason' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

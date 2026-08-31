@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 class LeastUsedGateSelectionStrategy implements GateSelectionStrategyInterface
 {
-    public function getOrderedGates(DateTimeInterface $flightStart = null): Collection
+    public function getOrderedGates(?DateTimeInterface $flightStart = null): Collection
     {
         return Gate::withCount('allocations')
             ->orderBy('allocations_count')

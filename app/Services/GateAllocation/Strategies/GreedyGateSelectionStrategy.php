@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 class GreedyGateSelectionStrategy implements GateSelectionStrategyInterface
 {
-    public function getOrderedGates(DateTimeInterface $flightStart = null): Collection
+    public function getOrderedGates(?DateTimeInterface $flightStart = null): Collection
     {
         return Gate::orderBy('code')->get();
     }

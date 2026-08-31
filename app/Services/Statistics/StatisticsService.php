@@ -14,14 +14,14 @@ class StatisticsService
     public function generate(Carbon $from, Carbon $to): array
     {
         return [
-            'period'         => $this->period($from, $to),
-            'gates'          => $this->gates($from, $to),
-            'flights'        => $this->flights($from, $to),
-            'allocations'    => $this->allocations($from, $to),
-            'peak'           => $this->peak($from, $to),
-            'top_gates'      => $this->topGates($from, $to),
+            'period' => $this->period($from, $to),
+            'gates' => $this->gates($from, $to),
+            'flights' => $this->flights($from, $to),
+            'allocations' => $this->allocations($from, $to),
+            'peak' => $this->peak($from, $to),
+            'top_gates' => $this->topGates($from, $to),
             'unavailability' => $this->unavailability($from, $to),
-            'generated_at'   => now()->toIso8601String(),
+            'generated_at' => now()->toIso8601String(),
         ];
     }
 
@@ -29,7 +29,7 @@ class StatisticsService
     {
         return [
             'from' => $from->toIso8601String(),
-            'to'   => $to->toIso8601String(),
+            'to' => $to->toIso8601String(),
         ];
     }
 
@@ -39,12 +39,12 @@ class StatisticsService
 
         $activeGates = Gate::whereHas('allocations', function ($q) use ($from, $to) {
             $q->where('occupied_from', '<', $to)
-              ->where('occupied_until', '>', $from);
+                ->where('occupied_until', '>', $from);
         })->count();
 
         $hadUnavailability = Gate::whereHas('unavailabilities', function ($q) use ($from, $to) {
             $q->where('start_at', '<', $to)
-              ->where('end_at', '>', $from);
+                ->where('end_at', '>', $from);
         })->count();
 
         $periodMinutes = $from->diffInMinutes($to);
@@ -90,10 +90,10 @@ class StatisticsService
         }
 
         return [
-            'total'                     => $totalGates,
-            'active'                    => $activeGates,
-            'had_unavailability'        => $hadUnavailability,
-            'utilization_rate'          => $utilizationRate,
+            'total' => $totalGates,
+            'active' => $activeGates,
+            'had_unavailability' => $hadUnavailability,
+            'utilization_rate' => $utilizationRate,
             'average_turnaround_minutes' => $averageTurnaroundMinutes,
         ];
     }
@@ -112,10 +112,10 @@ class StatisticsService
         $allocationRate = $total > 0 ? round(($total - $unallocated) / $total, 2) : 0;
 
         return [
-            'total'           => $total,
-            'arrivals'        => $arrivals,
-            'departures'      => $departures,
-            'unallocated'     => $unallocated,
+            'total' => $total,
+            'arrivals' => $arrivals,
+            'departures' => $departures,
+            'unallocated' => $unallocated,
             'allocation_rate' => $allocationRate,
         ];
     }
@@ -131,10 +131,10 @@ class StatisticsService
         $durations = $allocations->map(fn ($a) => $a->occupied_from->diffInMinutes($a->occupied_until));
 
         return [
-            'total'                      => $total,
-            'average_duration_minutes'   => $total > 0 ? (int) round($durations->avg()) : null,
-            'shortest_duration_minutes'  => $total > 0 ? (int) $durations->min() : null,
-            'longest_duration_minutes'   => $total > 0 ? (int) $durations->max() : null,
+            'total' => $total,
+            'average_duration_minutes' => $total > 0 ? (int) round($durations->avg()) : null,
+            'shortest_duration_minutes' => $total > 0 ? (int) $durations->min() : null,
+            'longest_duration_minutes' => $total > 0 ? (int) $durations->max() : null,
         ];
     }
 
@@ -181,10 +181,10 @@ class StatisticsService
         }
 
         return [
-            'busiest_hour'              => $busiestHour,
-            'max_simultaneous_gates'    => $maxOccupied,
-            'busiest_date'              => $busiestDate,
-            'busiest_date_allocations'  => $busiestDateAllocations,
+            'busiest_hour' => $busiestHour,
+            'max_simultaneous_gates' => $maxOccupied,
+            'busiest_date' => $busiestDate,
+            'busiest_date_allocations' => $busiestDateAllocations,
         ];
     }
 
@@ -201,7 +201,7 @@ class StatisticsService
                 $gate = Gate::find($row->gate_id);
 
                 return [
-                    'gate_code'         => $gate->code,
+                    'gate_code' => $gate->code,
                     'allocations_count' => (int) $row->allocations_count,
                 ];
             })
@@ -238,10 +238,10 @@ class StatisticsService
             ->first();
 
         return [
-            'total_events'           => $totalEvents,
+            'total_events' => $totalEvents,
             'total_downtime_minutes' => (int) $totalDowntimeMinutes,
-            'affected_gates'         => $affectedGates,
-            'most_common_reason'     => $mostCommonReason?->reason,
+            'affected_gates' => $affectedGates,
+            'most_common_reason' => $mostCommonReason?->reason,
         ];
     }
 }
