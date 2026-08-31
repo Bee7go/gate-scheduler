@@ -24,7 +24,6 @@ Airport Gate Scheduler pulls live flight data from OpenSky, intelligently assign
 - **PHP 8.2+** / **Laravel 12**
 - **SQLite** (default for local & testing)
 - **PHPUnit 11**
-- **Vite + Tailwind CSS**
 
 ---
 
@@ -33,7 +32,7 @@ Airport Gate Scheduler pulls live flight data from OpenSky, intelligently assign
 1. Install dependencies:
 
 ```bash
-composer install && npm install
+composer install
 ```
 
 2. Set up environment:
@@ -53,11 +52,10 @@ GATE_OCCUPATION_TIME=90
 GATE_ALLOCATION_STRATEGY=greedy
 ```
 
-4. Run migrations and build assets:
+4. Run migrations:
 
 ```bash
 php artisan migrate
-npm run build
 ```
 
 Or use the bundled bootstrap script: `composer run setup`
@@ -72,7 +70,7 @@ Start everything in one command:
 composer run dev
 ```
 
-This starts the Laravel server, queue listener, log tailing, and Vite dev server.
+This starts the Laravel API server.
 
 To run the scheduler loop locally:
 
