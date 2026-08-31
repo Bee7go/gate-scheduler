@@ -67,6 +67,7 @@ Both are shown only once when created — store them safely.
 |--------|----------|-------------|
 | `POST` | `/system/sync-now` | Trigger a flight sync on demand (rate limited) |
 | `GET` | `/system/health` | Lightweight health check for the scheduler |
+| `GET` | `/system/status` | Sync and OpenSky operational status |
 
 ---
 
@@ -671,7 +672,7 @@ Returned if more than 1 request is made within a 2-minute window.
 
 Return a lightweight health summary for the scheduler, database, sync process, and gates. Requires an **API key**.
 
-This endpoint is intentionally cheap — it checks database connectivity and reads a few counts. It does not call any external APIs. Returns `503` if the database is unreachable.
+This endpoint is intentionally cheap — it checks database connectivity and reads a few counts. It does not call any external APIs. The sync timestamp is the latest fully live sync; fallback-backed runs do not advance it.
 
 #### Example
 
@@ -709,7 +710,7 @@ curl https://your-app.test/api/v1/system/health \
 |-------|-------------|
 | `status` | `healthy` if database is reachable, `degraded` otherwise |
 | `database.status` | `ok` or `unreachable` |
-| `sync.last_synced_at` | ISO 8601 timestamp of the most recently updated flight (null if no flights) |
+| `sync.last_synced_at` | ISO 8601 timestamp of the latest fully live sync (null if none completed) |
 | `flights.total` | Total number of flights stored in the database |
 | `gates.total` | Total number of gates |
 | `gates.active_allocations` | Allocations active right now |
@@ -718,7 +719,15 @@ curl https://your-app.test/api/v1/system/health \
 
 #### Response (`503 Service Unavailable`) — database unreachable
 
-All database-backed fields are returned as `null`. The response shape is identical so clients can always parse it.
+If the API-key lookup succeeds but a later health query fails, all database-backed fields are returned as `null` in the detailed response below. If the database is unavailable during API-key authentication, middleware fails closed before this controller runs and returns:
+
+```json
+{
+  "message": "Service unavailable."
+}
+```
+
+The detailed degraded response is:
 
 ```json
 {
@@ -735,3 +744,42 @@ All database-backed fields are returned as `null`. The response shape is identic
     "checked_at": "2026-04-30T14:58:56+00:00"
   }
 }
+```
+
+---
+
+### `GET /system/status`
+
+Return safe operational information for the latest flight sync and the current OpenSky circuit-breaker state. Requires an **API key**. It does not expose credentials, provider payloads, cache keys, or exception traces.
+
+#### Response (`200 OK`)
+
+```json
+{
+  "data": {
+    "sync": {
+      "last_successful_at": "2026-08-31T10:00:00.000000Z",
+      "last_failed_at": null,
+      "last_run": {
+        "status": "degraded",
+        "trigger": "scheduled",
+        "started_at": "2026-08-31T10:00:00.000000Z",
+        "finished_at": "2026-08-31T10:00:04.000000Z",
+        "arrivals_source": "fallback",
+        "departures_source": "live",
+        "failure_reason": "arrivals_circuit_breaker_open"
+      }
+    },
+    "opensky": {
+      "arrivals": { "breaker_state": "open" },
+      "departures": { "breaker_state": "closed" }
+    }
+  }
+}
+```
+
+Sync run statuses:
+
+- `completed`: arrivals and departures both used live OpenSky data.
+- `degraded`: at least one direction used cached fallback data.
+- `failed`: a direction had neither live nor fallback data, or an unexpected sync error occurred.

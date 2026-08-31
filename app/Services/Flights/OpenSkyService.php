@@ -31,14 +31,13 @@ class OpenSkyService
      * directly in tests or simple call sites without resolving it through the
      * container.
      *
-     * @param OpenSkyAuthService|null $authService Service used to fetch and cache OpenSky auth tokens.
-     * @param OpenSkyCircuitBreaker|null $circuitBreaker Service used to guard live API calls during repeated failures.
+     * @param  OpenSkyAuthService|null  $authService  Service used to fetch and cache OpenSky auth tokens.
+     * @param  OpenSkyCircuitBreaker|null  $circuitBreaker  Service used to guard live API calls during repeated failures.
      */
     public function __construct(
         private readonly ?OpenSkyAuthService $authService = null,
         private readonly ?OpenSkyCircuitBreaker $circuitBreaker = null
-    ) {
-    }
+    ) {}
 
     private const DIRECTIONS = ['arrival', 'departure'];
 
@@ -49,12 +48,12 @@ class OpenSkyService
      * skipped. Valid rows are then upserted using the unique combination of
      * aircraft, airport, and direction.
      *
-     * @param array $flights List of raw OpenSky flight payloads.
-     * @param string $airport Airport ICAO code associated with the request.
-     * @param string $direction Flight direction key, typically arrival or departure.
-     * @return void
+     * @param  array  $flights  List of raw OpenSky flight payloads.
+     * @param  string  $airport  Airport ICAO code associated with the request.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      */
-    public function storeFlights(array $flights, string $airport, string $direction): void {
+    public function storeFlights(array $flights, string $airport, string $direction): void
+    {
 
         $rows = [];
         foreach ($flights as $flightData) {
@@ -90,8 +89,8 @@ class OpenSkyService
 
         Log::info("Flight Sync Complete for {$airport} ({$direction})", [
             'total_processed' => $totalRows,
-            'newly_inserted'  => $afterInsertionCount - $existingCount,
-            'updated'         => $existingCount
+            'newly_inserted' => $afterInsertionCount - $existingCount,
+            'updated' => $existingCount,
         ]);
     }
 
@@ -101,17 +100,19 @@ class OpenSkyService
      * The OpenSky payload is reduced to the fields needed by this application.
      * If the required aircraft identifier is missing, the row is rejected.
      *
-     * @param array $flightData Raw flight item returned by OpenSky.
-     * @param string $airport Airport ICAO code associated with the request.
-     * @param string $direction Flight direction key, typically arrival or departure.
+     * @param  array  $flightData  Raw flight item returned by OpenSky.
+     * @param  string  $airport  Airport ICAO code associated with the request.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      * @return array|null Normalized database row or null when required data is missing.
      */
-    private function mapFlightDataToModel(array $flightData, string $airport, string $direction): ?array {
+    private function mapFlightDataToModel(array $flightData, string $airport, string $direction): ?array
+    {
         $icao24 = $flightData['icao24'] ?? null;
         if (empty($icao24)) {
             Log::warning('Skipping flight data: Missing icao24 identifier', [
-                'data_snippet' => $flightData
+                'data_snippet' => $flightData,
             ]);
+
             return null;
         }
 
@@ -120,43 +121,44 @@ class OpenSkyService
             'airport_icao' => $airport,
             'direction' => $direction,
             'first_seen_at' => isset($flightData['firstSeen'])
-                ? (new DateTime())->setTimestamp((int)$flightData['firstSeen'])
+                ? (new DateTime)->setTimestamp((int) $flightData['firstSeen'])
                 : null,
             'last_seen_at' => isset($flightData['lastSeen'])
-                ? (new DateTime())->setTimestamp((int)$flightData['lastSeen'])
+                ? (new DateTime)->setTimestamp((int) $flightData['lastSeen'])
                 : null,
             'created_at' => now(),
             'updated_at' => now(),
         ];
     }
 
+    public function fetchFlights(string $airport, string $direction): ?array
+    {
+        $result = $this->fetchFlightsWithStatus($airport, $direction);
+
+        return $result->isAvailable() ? $result->flights : null;
+    }
+
     /**
-     * Fetch flights from OpenSky with retry, validation, and cached fallback support.
-     *
-     * This method validates inputs, obtains an access token, checks the circuit
-     * breaker, performs retryable HTTP requests, validates the response shape,
-     * and falls back to the most recent cached successful payload when the live
-     * API cannot be trusted or reached.
-     *
-     * @param string $airport ICAO airport code, for example EHAM or EDDF.
-     * @param string $direction Flight direction key, typically arrival or departure.
-     * @return array|null Valid flight payload array or null when neither live nor fallback data is available.
+     * Fetch flights with source metadata for sync orchestration.
      */
-    public function fetchFlights(string $airport, string $direction): ?array {
+    public function fetchFlightsWithStatus(string $airport, string $direction): FlightFetchResult
+    {
 
         // validate parameters
-        if (!in_array($direction, self::DIRECTIONS)) {
+        if (! in_array($direction, self::DIRECTIONS, true)) {
             Log::error("Invalid flight direction provided: {$direction}");
-            return null;
+
+            return new FlightFetchResult([], FlightFetchResult::SOURCE_UNAVAILABLE, 'invalid_direction');
         }
 
-        if (!preg_match('/^[A-Z]{4}$/', $airport)) {
+        if (! preg_match('/^[A-Z]{4}$/', $airport)) {
             Log::warning("Invalid airport ICAO code provided: {$airport}");
-            return null;
+
+            return new FlightFetchResult([], FlightFetchResult::SOURCE_UNAVAILABLE, 'invalid_airport');
         }
 
         try {
-            $accessToken = ($this->authService ?? new OpenSkyAuthService())->getAccessToken();
+            $accessToken = ($this->authService ?? new OpenSkyAuthService)->getAccessToken();
             $lookbackSeconds = config('services.opensky.lookback_seconds');
             $maxAttempts = max(1, (int) config('services.opensky.fetch_max_attempts', 3));
             $baseDelayMs = max(0, (int) config('services.opensky.fetch_retry_base_delay_ms', 500));
@@ -164,9 +166,9 @@ class OpenSkyService
             $begin = now()->subSeconds($lookbackSeconds)->timestamp;
             $end = now()->timestamp;
 
-            $breaker = $this->circuitBreaker ?? new OpenSkyCircuitBreaker();
+            $breaker = $this->circuitBreaker ?? new OpenSkyCircuitBreaker;
 
-            if (!$breaker->allows($airport, $direction)) {
+            if (! $breaker->allows($airport, $direction)) {
                 Log::notice('OpenSky circuit breaker is open, skipping live call', [
                     'airport' => $airport,
                     'direction' => $direction,
@@ -177,7 +179,7 @@ class OpenSkyService
 
             Log::debug("Fetching {$direction} flights for {$airport}", [
                 'begin' => $begin,
-                'end' => $end
+                'end' => $end,
             ]);
 
             for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
@@ -194,7 +196,7 @@ class OpenSkyService
                     if ($response->successful()) {
                         $payload = $response->json();
 
-                        if (!$this->isValidFlightsPayload($payload)) {
+                        if (! $this->isValidFlightsPayload($payload)) {
                             Log::error('OpenSky API returned malformed flights payload', [
                                 'airport' => $airport,
                                 'direction' => $direction,
@@ -208,13 +210,13 @@ class OpenSkyService
 
                         $breaker->recordSuccess($airport, $direction);
 
-                        return $payload;
+                        return new FlightFetchResult($payload, FlightFetchResult::SOURCE_LIVE);
                     }
 
                     $status = $response->status();
                     $isRetryableStatus = $status === 429 || $status >= 500;
 
-                    if (!$isRetryableStatus) {
+                    if (! $isRetryableStatus) {
                         Log::error('OpenSky API returned non-retryable response', [
                             'status' => $status,
                             'body' => $response->body(),
@@ -263,7 +265,7 @@ class OpenSkyService
             return $this->getCachedFallback($airport, $direction, 'request_failed_after_retries');
 
         } catch (Exception $e) {
-            Log::critical("Unexpected error in fetchFlights", [
+            Log::critical('Unexpected error in fetchFlights', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -279,17 +281,17 @@ class OpenSkyService
      * This intentionally rejects malformed or partially decoded responses before
      * they can be cached or persisted.
      *
-     * @param mixed $payload Decoded HTTP response payload.
+     * @param  mixed  $payload  Decoded HTTP response payload.
      * @return bool True when the payload matches the expected list-of-arrays structure.
      */
     private function isValidFlightsPayload(mixed $payload): bool
     {
-        if (!is_array($payload)) {
+        if (! is_array($payload)) {
             return false;
         }
 
         foreach ($payload as $item) {
-            if (!is_array($item)) {
+            if (! is_array($item)) {
                 return false;
             }
         }
@@ -304,10 +306,9 @@ class OpenSkyService
      * configurable TTL so the application can continue operating during short
      * external outages.
      *
-     * @param string $airport ICAO airport code associated with the payload.
-     * @param string $direction Flight direction key, typically arrival or departure.
-     * @param array $payload Valid flight payload to cache.
-     * @return void
+     * @param  string  $airport  ICAO airport code associated with the payload.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
+     * @param  array  $payload  Valid flight payload to cache.
      */
     private function cacheFlightsPayload(string $airport, string $direction, array $payload): void
     {
@@ -322,12 +323,12 @@ class OpenSkyService
      * When fallback data exists, it is returned and a notice is logged with the
      * failure reason that triggered fallback mode.
      *
-     * @param string $airport ICAO airport code associated with the request.
-     * @param string $direction Flight direction key, typically arrival or departure.
-     * @param string $reason Reason why live data could not be used.
+     * @param  string  $airport  ICAO airport code associated with the request.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
+     * @param  string  $reason  Reason why live data could not be used.
      * @return array|null Cached payload or null if no fallback exists.
      */
-    private function getCachedFallback(string $airport, string $direction, string $reason): ?array
+    private function getCachedFallback(string $airport, string $direction, string $reason): FlightFetchResult
     {
         $cacheKey = $this->getFallbackCacheKey($airport, $direction);
         $cached = Cache::get($cacheKey);
@@ -339,7 +340,7 @@ class OpenSkyService
                 'reason' => $reason,
             ]);
 
-            return $cached;
+            return new FlightFetchResult($cached, FlightFetchResult::SOURCE_FALLBACK, $reason);
         }
 
         Log::error('No cached OpenSky fallback payload available', [
@@ -348,14 +349,14 @@ class OpenSkyService
             'reason' => $reason,
         ]);
 
-        return null;
+        return new FlightFetchResult([], FlightFetchResult::SOURCE_UNAVAILABLE, $reason);
     }
 
     /**
      * Build the cache key used for the last successful flights payload.
      *
-     * @param string $airport ICAO airport code associated with the payload.
-     * @param string $direction Flight direction key, typically arrival or departure.
+     * @param  string  $airport  ICAO airport code associated with the payload.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      * @return string Cache key for the fallback payload.
      */
     private function getFallbackCacheKey(string $airport, string $direction): string
@@ -369,8 +370,8 @@ class OpenSkyService
      * The delay doubles on each attempt and is capped to avoid unbounded wait
      * times during long outages.
      *
-     * @param int $attempt Current retry attempt number, starting at 1.
-     * @param int $baseDelayMs Base retry delay in milliseconds.
+     * @param  int  $attempt  Current retry attempt number, starting at 1.
+     * @param  int  $baseDelayMs  Base retry delay in milliseconds.
      * @return int Delay in microseconds suitable for use with usleep().
      */
     private function computeBackoffDelayMicros(int $attempt, int $baseDelayMs): int

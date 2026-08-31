@@ -7,6 +7,7 @@ use App\Models\Flight;
 use App\Models\Gate;
 use App\Models\GateAllocation;
 use App\Models\GateUnavailability;
+use App\Models\SyncRun;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -136,17 +137,27 @@ class HealthApiTest extends TestCase
             ->assertJsonPath('data.gates.active_unavailabilities', 0);
     }
 
-    public function test_last_synced_at_reflects_latest_flight(): void
+    public function test_last_synced_at_reflects_latest_completed_sync(): void
     {
-        Flight::factory()->create(['updated_at' => now()->subHours(2)]);
-        $latest = Flight::factory()->create(['updated_at' => now()->subMinutes(5)]);
+        SyncRun::create([
+            'trigger' => 'scheduled',
+            'status' => 'degraded',
+            'started_at' => now()->subMinutes(10),
+            'finished_at' => now()->subMinutes(9),
+        ]);
+        $completedRun = SyncRun::create([
+            'trigger' => 'scheduled',
+            'status' => 'completed',
+            'started_at' => now()->subMinutes(5),
+            'finished_at' => now()->subMinutes(4),
+        ]);
 
         $response = $this->apiGet('/api/v1/system/health');
 
         $response->assertOk();
 
         $lastSynced = $response->json('data.sync.last_synced_at');
-        $this->assertNotNull($lastSynced);
+        $this->assertSame($completedRun->finished_at->toISOString(), $lastSynced);
     }
 
     public function test_returns_503_and_degraded_status_when_database_unreachable(): void

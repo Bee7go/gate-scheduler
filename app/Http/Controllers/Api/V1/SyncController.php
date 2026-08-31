@@ -13,14 +13,14 @@ class SyncController extends Controller
     {
         $lock = Cache::lock('sync-flights', 120);
 
-        if (!$lock->get()) {
+        if (! $lock->get()) {
             return response()->json([
                 'message' => 'A sync is already in progress. Please try again later.',
             ], 409);
         }
 
         try {
-            $summary = $flightSyncService->sync();
+            $summary = $flightSyncService->sync('manual');
 
             return response()->json(['data' => $summary]);
         } finally {

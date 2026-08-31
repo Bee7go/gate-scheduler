@@ -27,7 +27,7 @@ class SyncFlights extends Command
      */
     public function handle(FlightSyncService $flightSyncService): void
     {
-        if (!$this->option('now')) {
+        if (! $this->option('now')) {
             SyncFlightsJob::dispatch();
 
             $this->info('Flight sync job dispatched to queue');
@@ -35,7 +35,7 @@ class SyncFlights extends Command
             return;
         }
 
-        $result = $flightSyncService->sync();
+        $result = $flightSyncService->sync('command');
 
         $this->info('Flights synced successfully');
         $this->line(json_encode($result));

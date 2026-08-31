@@ -16,7 +16,9 @@ use Illuminate\Support\Facades\Log;
 class OpenSkyCircuitBreaker
 {
     private const STATE_CLOSED = 'closed';
+
     private const STATE_OPEN = 'open';
+
     private const STATE_HALF_OPEN = 'half_open';
 
     private const CACHE_KEY_PREFIX = 'opensky.breaker';
@@ -27,13 +29,13 @@ class OpenSkyCircuitBreaker
      * Requests are allowed while the breaker is closed or half-open. Requests
      * are blocked only while the breaker is open during the cooldown window.
      *
-     * @param string $airport ICAO airport code used as part of the breaker scope.
-     * @param string $direction Flight direction key, typically arrival or departure.
+     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      * @return bool True when the caller may attempt a live API request.
      */
     public function allows(string $airport, string $direction): bool
     {
-        $state = $this->getState($airport, $direction);
+        $state = $this->state($airport, $direction);
 
         if ($state === self::STATE_CLOSED) {
             return true;
@@ -52,14 +54,15 @@ class OpenSkyCircuitBreaker
      * Closing the breaker removes the cached state flag so subsequent calls are
      * treated as healthy again.
      *
-     * @param string $airport ICAO airport code used as part of the breaker scope.
-     * @param string $direction Flight direction key, typically arrival or departure.
-     * @return void
+     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      */
     public function recordSuccess(string $airport, string $direction): void
     {
         $cacheKey = $this->getStateKey($airport, $direction);
         Cache::forget($cacheKey);
+        Cache::forget($this->getFailuresKey($airport, $direction));
+        Cache::forget($this->getOpenedAtKey($airport, $direction));
 
         Log::info('OpenSky circuit breaker closed', [
             'airport' => $airport,
@@ -74,9 +77,8 @@ class OpenSkyCircuitBreaker
      * of failures reaches the configured threshold, the breaker is opened for the
      * current airport and direction scope.
      *
-     * @param string $airport ICAO airport code used as part of the breaker scope.
-     * @param string $direction Flight direction key, typically arrival or departure.
-     * @return void
+     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      */
     public function recordFailure(string $airport, string $direction): void
     {
@@ -97,13 +99,18 @@ class OpenSkyCircuitBreaker
     /**
      * Check whether the breaker is currently open for the given scope.
      *
-     * @param string $airport ICAO airport code used as part of the breaker scope.
-     * @param string $direction Flight direction key, typically arrival or departure.
+     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      * @return bool True when live calls should currently be blocked.
      */
     public function isOpen(string $airport, string $direction): bool
     {
-        return $this->getState($airport, $direction) === self::STATE_OPEN;
+        return $this->state($airport, $direction) === self::STATE_OPEN;
+    }
+
+    public function state(string $airport, string $direction): string
+    {
+        return $this->getState($airport, $direction);
     }
 
     /**
@@ -112,14 +119,14 @@ class OpenSkyCircuitBreaker
      * This forces the breaker back to a healthy baseline regardless of its
      * current state.
      *
-     * @param string $airport ICAO airport code used as part of the breaker scope.
-     * @param string $direction Flight direction key, typically arrival or departure.
-     * @return void
+     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      */
     public function reset(string $airport, string $direction): void
     {
         Cache::forget($this->getStateKey($airport, $direction));
         Cache::forget($this->getFailuresKey($airport, $direction));
+        Cache::forget($this->getOpenedAtKey($airport, $direction));
 
         Log::info('OpenSky circuit breaker reset', [
             'airport' => $airport,
@@ -134,8 +141,8 @@ class OpenSkyCircuitBreaker
      * method returns a half-open state to allow callers to probe the dependency
      * again.
      *
-     * @param string $airport ICAO airport code used as part of the breaker scope.
-     * @param string $direction Flight direction key, typically arrival or departure.
+     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      * @return string One of the internal state constants.
      */
     private function getState(string $airport, string $direction): string
@@ -147,7 +154,7 @@ class OpenSkyCircuitBreaker
             $cooldownSeconds = max(60, (int) config('services.opensky.breaker_cooldown_seconds', 600));
             $openedAt = Cache::get($this->getOpenedAtKey($airport, $direction));
 
-            if ($openedAt && (time() - $openedAt) > $cooldownSeconds) {
+            if ($openedAt && (now()->timestamp - $openedAt) > $cooldownSeconds) {
                 return self::STATE_HALF_OPEN;
             }
         }
@@ -161,31 +168,31 @@ class OpenSkyCircuitBreaker
      * The open state and its timestamp are stored in cache so later calls can
      * determine when the breaker should move to half-open.
      *
-     * @param string $airport ICAO airport code used as part of the breaker scope.
-     * @param string $direction Flight direction key, typically arrival or departure.
-     * @return void
+     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      */
     private function openCircuit(string $airport, string $direction): void
     {
-        $coodownSeconds = max(60, (int) config('services.opensky.breaker_cooldown_seconds', 600));
+        $cooldownSeconds = max(60, (int) config('services.opensky.breaker_cooldown_seconds', 600));
         $stateKey = $this->getStateKey($airport, $direction);
         $openedAtKey = $this->getOpenedAtKey($airport, $direction);
 
-        Cache::put($stateKey, self::STATE_OPEN, now()->addSeconds($coodownSeconds));
-        Cache::put($openedAtKey, time(), now()->addSeconds($coodownSeconds));
+        // Keep state briefly beyond cooldown so callers can observe and probe half-open mode.
+        Cache::put($stateKey, self::STATE_OPEN, now()->addSeconds($cooldownSeconds * 2));
+        Cache::put($openedAtKey, now()->timestamp, now()->addSeconds($cooldownSeconds * 2));
 
         Log::warning('OpenSky circuit breaker opened', [
             'airport' => $airport,
             'direction' => $direction,
-            'cooldown_seconds' => $coodownSeconds,
+            'cooldown_seconds' => $cooldownSeconds,
         ]);
     }
 
     /**
      * Build the cache key used to store the breaker state.
      *
-     * @param string $airport ICAO airport code used as part of the breaker scope.
-     * @param string $direction Flight direction key, typically arrival or departure.
+     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      * @return string Cache key for the breaker state value.
      */
     private function getStateKey(string $airport, string $direction): string
@@ -196,8 +203,8 @@ class OpenSkyCircuitBreaker
     /**
      * Build the cache key used to store the rolling failure count.
      *
-     * @param string $airport ICAO airport code used as part of the breaker scope.
-     * @param string $direction Flight direction key, typically arrival or departure.
+     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      * @return string Cache key for the failure counter.
      */
     private function getFailuresKey(string $airport, string $direction): string
@@ -208,8 +215,8 @@ class OpenSkyCircuitBreaker
     /**
      * Build the cache key used to store the timestamp when the breaker opened.
      *
-     * @param string $airport ICAO airport code used as part of the breaker scope.
-     * @param string $direction Flight direction key, typically arrival or departure.
+     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
+     * @param  string  $direction  Flight direction key, typically arrival or departure.
      * @return string Cache key for the opened-at timestamp.
      */
     private function getOpenedAtKey(string $airport, string $direction): string

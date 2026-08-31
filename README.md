@@ -114,6 +114,7 @@ curl "https://your-app.test/api/v1/gates/status" \
 | `GET` | `/statistics` | API key | Period-scoped statistics for dashboards |
 | `POST` | `/system/sync-now` | API key | Trigger a flight sync on demand (rate limited) |
 | `GET` | `/system/health` | API key | Lightweight health check for the scheduler |
+| `GET` | `/system/status` | API key | Sync and OpenSky operational status |
 
 ---
 

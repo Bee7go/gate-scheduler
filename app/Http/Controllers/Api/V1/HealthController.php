@@ -7,6 +7,7 @@ use App\Models\Flight;
 use App\Models\Gate;
 use App\Models\GateAllocation;
 use App\Models\GateUnavailability;
+use App\Models\SyncRun;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -19,15 +20,19 @@ class HealthController extends Controller
         try {
             DB::connection()->getPdo();
 
-            $lastFlightSyncedAt = Flight::max('updated_at');
+            $lastSuccessfulSync = SyncRun::query()
+                ->where('status', 'completed')
+                ->orderByDesc('finished_at')
+                ->orderByDesc('id')
+                ->first();
 
             return response()->json([
                 'data' => [
                     'status' => 'healthy',
                     'database' => ['status' => 'ok'],
                     'sync' => [
-                        'last_synced_at' => $lastFlightSyncedAt
-                            ? \Carbon\Carbon::parse($lastFlightSyncedAt)->toISOString()
+                        'last_synced_at' => $lastSuccessfulSync?->finished_at
+                            ? $lastSuccessfulSync->finished_at->toISOString()
                             : null,
                     ],
                     'flights' => ['total' => Flight::count()],

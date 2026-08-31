@@ -26,7 +26,7 @@ class SyncFlightsJob implements ShouldQueue
 
     public function handle(FlightSyncService $flightSyncService): void
     {
-        $summary = $flightSyncService->sync();
+        $summary = $flightSyncService->sync('scheduled');
 
         Log::info('queue.job.sync_flights.completed', [
             'summary' => $summary,

@@ -156,6 +156,26 @@ class OpenSkyServiceFetchFlightsTest extends TestCase
         Http::assertSentCount(3);
     }
 
+    public function test_fetch_flights_with_status_reports_fallback_source(): void
+    {
+        config()->set('services.opensky.fetch_max_attempts', 1);
+        $cachedPayload = [
+            ['icao24' => 'cached-status', 'firstSeen' => 1736510400, 'lastSeen' => 1736512200],
+        ];
+        Cache::put(self::FALLBACK_KEY, $cachedPayload, now()->addMinutes(5));
+
+        Http::fake([
+            'https://auth.opensky.test/oauth/token' => Http::response(['access_token' => 'fake-token'], 200),
+            'https://opensky-network.org/api/flights/arrival*' => Http::response(['error' => 'unavailable'], 503),
+        ]);
+
+        $result = $this->service->fetchFlightsWithStatus('EHAM', 'arrival');
+
+        $this->assertSame('fallback', $result->source);
+        $this->assertSame('request_failed_after_retries', $result->reason);
+        $this->assertSame($cachedPayload, $result->flights);
+    }
+
     /**
      * Ensure malformed successful responses are rejected and replaced with cached
      * fallback payloads.

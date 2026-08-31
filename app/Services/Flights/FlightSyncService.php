@@ -2,8 +2,10 @@
 
 namespace App\Services\Flights;
 
+use App\Models\SyncRun;
 use App\Services\GateAllocation\GateAllocatorService;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class FlightSyncService
 {
@@ -12,33 +14,85 @@ class FlightSyncService
         private readonly GateAllocatorService $gateAllocator
     ) {}
 
-    public function sync(): array
+    public function sync(string $trigger = 'manual'): array
     {
         $airport = config('services.opensky.airport_icao');
+        $syncRun = SyncRun::create([
+            'trigger' => $trigger,
+            'status' => 'running',
+            'started_at' => now(),
+        ]);
 
-        $summary = [
-            'arrivals_fetched' => 0,
-            'departures_fetched' => 0,
-            'allocation' => [],
-        ];
+        try {
+            $arrivals = $this->openSkyService->fetchFlightsWithStatus($airport, 'arrival');
+            $departures = $this->openSkyService->fetchFlightsWithStatus($airport, 'departure');
 
-        // fetch arrivals
-        $arrivals = $this->openSkyService->fetchFlights($airport, 'arrival') ?? [];
-        $summary['arrivals_fetched'] = count($arrivals);
+            $summary = [
+                'arrivals_fetched' => count($arrivals->flights),
+                'departures_fetched' => count($departures->flights),
+                'allocation' => [],
+            ];
 
-        $this->openSkyService->storeFlights($arrivals, $airport, 'arrival');
+            if ($arrivals->isAvailable()) {
+                $this->openSkyService->storeFlights($arrivals->flights, $airport, 'arrival');
+            }
 
-        // fetch departures
-        $departures = $this->openSkyService->fetchFlights($airport, 'departure') ?? [];
-        $summary['departures_fetched'] = count($departures);
+            if ($departures->isAvailable()) {
+                $this->openSkyService->storeFlights($departures->flights, $airport, 'departure');
+            }
 
-        $this->openSkyService->storeFlights($departures, $airport, 'departure');
+            $summary['allocation'] = $this->gateAllocator->assignUnallocatedFlights();
 
-        // allocate gates
-        $summary['allocation'] = $this->gateAllocator->assignUnallocatedFlights();
+            $status = $this->resolveStatus($arrivals, $departures);
+            $syncRun->update([
+                'status' => $status,
+                'arrivals_source' => $arrivals->source,
+                'departures_source' => $departures->source,
+                'arrivals_fetched' => $summary['arrivals_fetched'],
+                'departures_fetched' => $summary['departures_fetched'],
+                'allocation_summary' => $summary['allocation'],
+                'failure_reason' => $this->resolveFailureReason($arrivals, $departures),
+                'finished_at' => now(),
+            ]);
 
-        Log::info('flight.sync.completed', $summary);
+            Log::info('flight.sync.completed', [...$summary, 'status' => $status]);
 
-        return $summary;
+            return $summary;
+        } catch (Throwable $exception) {
+            $syncRun->update([
+                'status' => 'failed',
+                'failure_reason' => 'unexpected_error',
+                'finished_at' => now(),
+            ]);
+
+            throw $exception;
+        }
+    }
+
+    private function resolveStatus(FlightFetchResult $arrivals, FlightFetchResult $departures): string
+    {
+        if (! $arrivals->isAvailable() || ! $departures->isAvailable()) {
+            return 'failed';
+        }
+
+        if ($arrivals->source === FlightFetchResult::SOURCE_FALLBACK
+            || $departures->source === FlightFetchResult::SOURCE_FALLBACK) {
+            return 'degraded';
+        }
+
+        return 'completed';
+    }
+
+    private function resolveFailureReason(FlightFetchResult $arrivals, FlightFetchResult $departures): ?string
+    {
+        $reasons = [];
+
+        foreach (['arrivals' => $arrivals, 'departures' => $departures] as $direction => $result) {
+            if ($result->source !== FlightFetchResult::SOURCE_LIVE && $result->reason) {
+                $reasons[] = "{$direction}_{$result->reason}";
+            }
+        }
+
+        return $reasons === [] ? null : implode(',', $reasons);
     }
 }
