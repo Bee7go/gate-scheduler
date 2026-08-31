@@ -21,7 +21,7 @@ Airport Gate Scheduler pulls live flight data from OpenSky, intelligently assign
 
 ## Tech Stack
 
-- **PHP 8.2+** / **Laravel 12**
+- **PHP 8.4+** / **Laravel 12**
 - **SQLite** (default for local & testing)
 - **PHPUnit 11**
 

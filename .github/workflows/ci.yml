@@ -19,7 +19,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.4'
           coverage: none
           tools: composer:v2
 
@@ -27,9 +27,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/composer/files
-          key: ${{ runner.os }}-php-8.2-${{ hashFiles('composer.lock') }}
+          key: ${{ runner.os }}-php-8.4-${{ hashFiles('composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-8.2-
+            ${{ runner.os }}-php-8.4-
 
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
