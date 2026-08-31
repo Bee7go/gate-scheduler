@@ -14,9 +14,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // @todo call gate seeder + gate unavailability
-        // $this->call([
-        //    GatesSeeder::class,
-        // ]);
+        $this->call(GateSeeder::class);
     }
 }

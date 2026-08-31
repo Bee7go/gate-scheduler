@@ -89,6 +89,8 @@ All endpoints live under `/api/v1`. Authentication uses two layers:
 
 Full API documentation with examples: **[docs/API.md](docs/API.md)**
 
+Deployment instructions: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
+
 Quick example — check which gates are free right now:
 
 ```bash

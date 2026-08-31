@@ -12,13 +12,9 @@ class GateSeeder extends Seeder
      */
     public function run(): void
     {
-        // generate 20 new gates
-        $gateCount = DB::table('gates')->count();
-        $startNumber = $gateCount + 1;
-
         $gates = [];
 
-        foreach (range($startNumber, $startNumber + 19) as $i) {
+        foreach (range(1, 20) as $i) {
             $gates[] = [
                 'code' => 'G'.$i,
                 'created_at' => now(),
@@ -26,6 +22,6 @@ class GateSeeder extends Seeder
             ];
         }
 
-        DB::table('gates')->insert($gates);
+        DB::table('gates')->upsert($gates, ['code'], ['updated_at']);
     }
 }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('gates', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('code')->unique();
+            $table->string('code', 10)->unique();
             $table->timestamps();
         });
 

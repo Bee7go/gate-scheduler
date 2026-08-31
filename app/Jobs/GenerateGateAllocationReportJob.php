@@ -15,14 +15,19 @@ class GenerateGateAllocationReportJob implements ShouldQueue
     /**
      * The number of times the job may be attempted.
      */
-    public int $tries = 1;
+    public int $tries = 3;
+
+    /**
+     * The maximum number of seconds the job may run before it is terminated.
+     */
+    public int $timeout = 120;
 
     /**
      * The number of seconds to wait before retrying the job.
      *
      * @var array<int, int>
      */
-    public array $backoff = [30, 120, 300];
+    public array $backoff = [30, 120];
 
     public function handle(GateAllocationReportService $service): void
     {

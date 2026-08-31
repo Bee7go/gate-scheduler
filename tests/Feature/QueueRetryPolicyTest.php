@@ -18,25 +18,25 @@ class QueueRetryPolicyTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_sync_flights_command_dispatches_single_try_job(): void
+    public function test_sync_flights_command_dispatches_retryable_job(): void
     {
         Queue::fake();
 
         $this->artisan('app:sync-flights')->assertExitCode(0);
 
         Queue::assertPushed(SyncFlightsJob::class, function (SyncFlightsJob $job) {
-            return $job->tries === 1;
+            return $job->tries === 3;
         });
     }
 
-    public function test_gate_report_command_dispatches_single_try_job(): void
+    public function test_gate_report_command_dispatches_retryable_job(): void
     {
         Queue::fake();
 
         $this->artisan('app:gate-allocation-report')->assertExitCode(0);
 
         Queue::assertPushed(GenerateGateAllocationReportJob::class, function (GenerateGateAllocationReportJob $job) {
-            return $job->tries === 1;
+            return $job->tries === 3;
         });
     }
 
@@ -62,16 +62,18 @@ class QueueRetryPolicyTest extends TestCase
         $this->assertDatabaseCount('gate_allocations', 2);
     }
 
-    public function test_job_retry_configuration_is_single_try(): void
+    public function test_job_retry_configuration_is_bounded(): void
     {
         $syncJob = new SyncFlightsJob;
         $reportJob = new GenerateGateAllocationReportJob;
 
-        $this->assertSame(1, $syncJob->tries);
-        $this->assertSame([30, 120, 300], $syncJob->backoff);
+        $this->assertSame(3, $syncJob->tries);
+        $this->assertSame(120, $syncJob->timeout);
+        $this->assertSame([30, 120], $syncJob->backoff);
 
-        $this->assertSame(1, $reportJob->tries);
-        $this->assertSame([30, 120, 300], $reportJob->backoff);
+        $this->assertSame(3, $reportJob->tries);
+        $this->assertSame(120, $reportJob->timeout);
+        $this->assertSame([30, 120], $reportJob->backoff);
     }
 
     public function test_sync_flights_job_logs_failure(): void
@@ -120,10 +122,11 @@ class QueueRetryPolicyTest extends TestCase
         $this->artisan('schedule:list')
             ->expectsOutputToContain('App\\Jobs\\SyncFlightsJob')
             ->expectsOutputToContain('App\\Jobs\\GenerateGateAllocationReportJob')
+            ->expectsOutputToContain('queue:prune-failed --hours=336')
             ->assertExitCode(0);
     }
 
-    public function test_exhausted_job_is_recorded_in_failed_jobs_table(): void
+    public function test_job_is_recorded_in_failed_jobs_table_when_worker_attempt_limit_is_reached(): void
     {
         config()->set('queue.default', 'database');
 
@@ -131,7 +134,9 @@ class QueueRetryPolicyTest extends TestCase
         $mock->shouldReceive('sync')->once()->andThrow(new \RuntimeException('boom'));
         $this->app->instance(FlightSyncService::class, $mock);
 
-        SyncFlightsJob::dispatch();
+        $job = new SyncFlightsJob;
+        $job->tries = 1;
+        dispatch($job);
 
         $this->artisan('queue:work', ['--once' => true, '--tries' => 1])->assertExitCode(0);
 

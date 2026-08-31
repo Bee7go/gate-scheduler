@@ -11,3 +11,7 @@ Schedule::job(new SyncFlightsJob)
 Schedule::job(new GenerateGateAllocationReportJob)
     ->everyThreeMinutes()
     ->withoutOverlapping(10);
+
+Schedule::command('queue:prune-failed --hours=336')
+    ->dailyAt('03:15')
+    ->withoutOverlapping();
