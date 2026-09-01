@@ -25,6 +25,12 @@ Airport Gate Scheduler pulls live flight data from OpenSky, intelligently assign
 - **SQLite** (default for local & testing)
 - **PHPUnit 11**
 
+## Architecture
+
+The scheduler dispatches sync jobs to Redis. Workers retrieve OpenSky flight data with cached fallback and circuit-breaker protection, store flights in PostgreSQL, then allocate available gates.
+
+![Airport Gate Scheduler architecture](docs/diagrams/airport-gate-scheduler-architecture.svg)
+
 ---
 
 ## Quick Start
