@@ -10,6 +10,31 @@ All endpoints are prefixed with:
 
 ---
 
+## Versioning
+
+The API is versioned through the URL path. `v1` is the current and only version.
+
+**What `v1` guarantees.** Within `v1`, existing endpoints, request parameters, response fields, status codes, and authentication semantics do not change in ways that break a correctly written client. The following are considered **non-breaking** and may happen within `v1` at any time — clients must tolerate them:
+
+- New endpoints
+- New optional request parameters
+- New fields in response bodies (ignore fields you don't recognize)
+- New values in free-form text fields (e.g. log or reason strings)
+- New values in enumerated status fields (e.g. gate status, sync run status) — treat an unrecognized value as "unknown" rather than failing
+
+**What counts as breaking** — and therefore only ships as a new `/api/v2` prefix:
+
+- Removing or renaming an endpoint, parameter, or response field
+- Changing a field's type or meaning, or a response's status code
+- Tightening validation on an existing parameter
+- Changing authentication or rate-limiting semantics in a way that rejects previously valid requests
+
+**Deprecation process.** If an endpoint or field is scheduled for removal in a future version, it is announced in the [changelog](../CHANGELOG.md), and the old behavior keeps working for the entire remaining life of its version. A new major version runs alongside the previous one for a minimum of 6 months before the old version is retired.
+
+Releases are tracked in the [changelog](../CHANGELOG.md) following [Semantic Versioning](https://semver.org/): the major version bumps only with a new API version prefix.
+
+---
+
 ## Authentication
 
 The API uses two layers of authentication:

@@ -260,4 +260,20 @@ class ApiKeyApiTest extends TestCase
         ])->assertStatus(401)
             ->assertJson(['message' => 'Invalid or expired bearer token.']);
     }
+
+    public function test_expired_api_key_is_rejected(): void
+    {
+        $user = $this->createUser();
+        $plainTextApiKey = 'expired-api-key';
+        ApiKey::create([
+            'user_id' => $user->id,
+            'name' => 'expired key',
+            'key' => hash('sha256', $plainTextApiKey),
+            'expires_at' => now()->subMinute(),
+        ]);
+
+        $this->getJson('/api/v1/allocations', ['X-Api-Key' => $plainTextApiKey])
+            ->assertStatus(401)
+            ->assertJson(['message' => 'API key expired.']);
+    }
 }

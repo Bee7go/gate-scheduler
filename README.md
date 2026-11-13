@@ -1,29 +1,39 @@
 # ✈️ Airport Gate Scheduler
 
-**Automatically assign flights to airport gates — and manage it all through a clean REST API.**
+[![CI](https://github.com/Bee7go/gate-scheduler/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Bee7go/gate-scheduler/actions/workflows/ci.yml)
 
-Airport Gate Scheduler pulls live flight data from OpenSky, intelligently assigns each flight to an available gate, and gives you a full API to monitor gate status, manage unavailabilities, and view allocations in real time.
+**A production-shaped REST API that ingests live flight data and allocates airport gates — built to show what an API partners can rely on looks like.**
+
+It pulls arrivals and departures from the OpenSky Network, assigns each flight to an available gate using configurable strategies, and exposes a documented, versioned API for allocations, gate status, maintenance windows, and operational statistics.
+
+**[API documentation](docs/API.md)** · **[Versioning policy](docs/API.md#versioning)** · **[Changelog](CHANGELOG.md)** · **[Deployment guide](docs/DEPLOYMENT.md)**
 
 ---
 
-## Features
+## Design Decisions
 
-- Pulls live flight data from the OpenSky Network (arrivals & departures)
-- Automatically assigns flights to available gates using configurable strategies
-- Tracks gate status in real time — free, occupied, or under maintenance
-- Manages gate unavailabilities (maintenance, cleaning, repairs)
-- Generates periodic gate usage health reports
-- Exposes a statistics endpoint with period-scoped KPIs: gate utilization, flight allocation rates, peak hours, top gates, and unavailability summaries
-- Full REST API with token-based authentication
-- Includes a feature test suite covering authentication, allocations, gate status, unavailability management, and statistics
+The interesting part of this project is not the gate allocation — it is the reliability engineering around it.
+
+**Fail closed, never open.** If the database is unreachable, protected endpoints return `503 Service unavailable` — an infrastructure failure can never bypass authentication, on either the API-key or the Bearer-token layer. The scenario is covered by a test that makes the database unreachable and asserts the request is rejected rather than let through.
+
+**Survive a flaky upstream.** OpenSky calls go through retry with backoff, a circuit breaker, and a cached fallback. When live data is unavailable, the sync degrades gracefully instead of failing — and says so: every sync run is recorded as `completed`, `degraded`, or `failed` and exposed via `GET /system/status`.
+
+**One sync at a time, whoever asks.** Flight syncs can be triggered by the scheduler, the queue, the CLI, or the API. A shared cache lock serializes them all; concurrent callers get a clean `409`, a skipped job, or a console warning — not a corrupted run.
+
+**One contract, no surprises.** Every paginated endpoint returns the same `{data, meta}` envelope with validated `per_page` and `page` parameters; gate status, a bounded snapshot of the gate inventory, returns a plain `data` array. Error bodies are consistent across endpoints, and the [versioning policy](docs/API.md#versioning) states what `v1` guarantees and what counts as a breaking change.
+
+**Secrets are hashes.** Bearer tokens and API keys are stored as SHA-256 hashes and shown exactly once at creation. Authentication endpoints are rate limited by client IP, read from the fronting proxy's `X-Forwarded-For` header — and in the production topology the app port is reachable only through that proxy, so the header cannot be spoofed from outside.
+
+**Tested like it matters.** The suite covers authentication edge cases (expired keys, cross-user revocation, database failure), allocation strategy behavior, circuit-breaker transitions, queue retry policy, and an end-to-end flow from fetch to allocation. CI runs it on both SQLite and PostgreSQL 17, plus a code-style gate.
 
 ---
 
 ## Tech Stack
 
-- **PHP 8.4+** / **Laravel 12**
+- **PHP 8.3+** / **Laravel 12**
 - **SQLite** + database queue (default for local & testing)
 - **PostgreSQL** + **Redis** (production)
+- **Docker Compose** production topology — API, queue worker, scheduler, PostgreSQL, Redis, and Caddy with automatic TLS, plus a backup script ([deployment guide](docs/DEPLOYMENT.md))
 - **PHPUnit 11**
 
 ## Architecture
@@ -74,14 +84,17 @@ Or use the bundled bootstrap script: `composer run setup`
 The app is three processes: the API server, a queue worker (sync and report jobs are queued), and the scheduler. Run each in its own terminal:
 
 ```bash
+# API server
 composer run dev
 ```
 
 ```bash
+# Queue worker
 php artisan queue:work
 ```
 
 ```bash
+# Scheduler
 php artisan schedule:work
 ```
 
@@ -97,8 +110,6 @@ All endpoints live under `/api/v1`. Authentication uses two layers:
 - **API key** — created with a Bearer token, used for all data endpoints
 
 Full API documentation with examples: **[docs/API.md](docs/API.md)**
-
-Deployment instructions: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
 
 Quick example — check which gates are free right now:
 
@@ -156,7 +167,7 @@ Set `GATE_ALLOCATION_STRATEGY` in `.env`:
 | Command | What it does |
 |---------|-------------|
 | `php artisan app:sync-flights` | Dispatch a flight sync job to the queue (`--now` runs it in-process) |
-| `php artisan app:gate-allocation-report` | Generate a gate usage health report |
+| `php artisan app:gate-allocation-report` | Dispatch a gate usage report job to the queue (`--now` runs it in-process) |
 
 ---
 
@@ -164,7 +175,7 @@ Set `GATE_ALLOCATION_STRATEGY` in `.env`:
 
 Key tables: `flights`, `gates`, `gate_allocations`, `gate_unavailabilities`, `users`, `api_keys`, `access_tokens`
 
-Allocations enforce one active record per flight via a unique index on `flight_id`. A schema diagram lives at [schema/db_diagram.png](schema/db_diagram.png).
+Allocations enforce exactly one allocation per flight via a unique index on `flight_id`. A schema diagram lives at [schema/db_diagram.png](schema/db_diagram.png).
 
 Seed 20 gates plus a sample unavailability window:
 
@@ -186,4 +197,4 @@ Run a specific test file:
 php artisan test tests/Feature/Api/GateUnavailabilityApiTest.php
 ```
 
-Tests use in-memory SQLite for fast execution.
+Tests use in-memory SQLite for fast execution; CI additionally runs the full suite against PostgreSQL 17.
