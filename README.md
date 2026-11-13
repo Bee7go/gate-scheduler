@@ -15,19 +15,20 @@ Airport Gate Scheduler pulls live flight data from OpenSky, intelligently assign
 - Generates periodic gate usage health reports
 - Exposes a statistics endpoint with period-scoped KPIs: gate utilization, flight allocation rates, peak hours, top gates, and unavailability summaries
 - Full REST API with token-based authentication
-- Includes feature and unit tests covering authentication, allocations, gate status, unavailability management, and statistics
+- Includes a feature test suite covering authentication, allocations, gate status, unavailability management, and statistics
 
 ---
 
 ## Tech Stack
 
 - **PHP 8.4+** / **Laravel 12**
-- **SQLite** (default for local & testing)
+- **SQLite** + database queue (default for local & testing)
+- **PostgreSQL** + **Redis** (production)
 - **PHPUnit 11**
 
 ## Architecture
 
-The scheduler dispatches sync jobs to Redis. Workers retrieve OpenSky flight data with cached fallback and circuit-breaker protection, store flights in PostgreSQL, then allocate available gates.
+In production, the scheduler dispatches sync jobs to a Redis queue. Workers retrieve OpenSky flight data with cached fallback and circuit-breaker protection, store flights in PostgreSQL, then allocate available gates. Locally the same flow runs on SQLite with the database queue driver.
 
 ![Airport Gate Scheduler architecture](docs/diagrams/airport-gate-scheduler-architecture.svg)
 
@@ -70,19 +71,21 @@ Or use the bundled bootstrap script: `composer run setup`
 
 ## Running the App
 
-Start everything in one command:
+The app is three processes: the API server, a queue worker (sync and report jobs are queued), and the scheduler. Run each in its own terminal:
 
 ```bash
 composer run dev
 ```
 
-This starts the Laravel API server.
-
-To run the scheduler loop locally:
+```bash
+php artisan queue:work
+```
 
 ```bash
 php artisan schedule:work
 ```
+
+Without the queue worker, scheduled flight syncs and reports are dispatched but never executed.
 
 ---
 
@@ -126,12 +129,12 @@ curl "https://your-app.test/api/v1/gates/status" \
 
 ## How It Works
 
-1. The `app:sync-flights` command fetches arrivals and departures from OpenSky
+1. The scheduler dispatches `SyncFlightsJob` to the queue, which fetches arrivals and departures from OpenSky
 2. Flights are stored with deduplication
 3. The Gate Allocator assigns each unallocated flight to an available gate
-4. The `app:gate-allocation-report` command generates health reports (gate usage, blocked gates, unassigned flights)
+4. `GenerateGateAllocationReportJob` generates health reports (gate usage, blocked gates, unassigned flights)
 
-Both commands run automatically on a schedule — flight sync every **2 minutes**, reports every **3 minutes**.
+Both jobs run automatically on a schedule — flight sync every **2 minutes**, reports every **3 minutes**. A cache lock guarantees only one sync runs at a time, whichever way it is triggered.
 
 ---
 
@@ -152,7 +155,7 @@ Set `GATE_ALLOCATION_STRATEGY` in `.env`:
 
 | Command | What it does |
 |---------|-------------|
-| `php artisan app:sync-flights` | Fetch flights from OpenSky and allocate them to gates |
+| `php artisan app:sync-flights` | Dispatch a flight sync job to the queue (`--now` runs it in-process) |
 | `php artisan app:gate-allocation-report` | Generate a gate usage health report |
 
 ---
@@ -161,13 +164,12 @@ Set `GATE_ALLOCATION_STRATEGY` in `.env`:
 
 Key tables: `flights`, `gates`, `gate_allocations`, `gate_unavailabilities`, `users`, `api_keys`, `access_tokens`
 
-Allocations enforce one active record per flight via a unique index on `flight_id`.
+Allocations enforce one active record per flight via a unique index on `flight_id`. A schema diagram lives at [schema/db_diagram.png](schema/db_diagram.png).
 
-Seeders for gates and unavailabilities exist but are not auto-run:
+Seed 20 gates plus a sample unavailability window:
 
 ```bash
-php artisan db:seed --class=GateSeeder
-php artisan db:seed --class=GateUnavailabilitiesSeeder
+php artisan db:seed
 ```
 
 ---
@@ -181,7 +183,7 @@ composer run test
 Run a specific test file:
 
 ```bash
-php artisan test tests/Feature/GateUnavailabilityApiTest.php
+php artisan test tests/Feature/Api/GateUnavailabilityApiTest.php
 ```
 
 Tests use in-memory SQLite for fast execution.
