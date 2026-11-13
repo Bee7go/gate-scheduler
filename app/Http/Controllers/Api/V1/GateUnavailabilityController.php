@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Controllers\Concerns\RespondsWithPagination;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\ListGateUnavailabilitiesRequest;
 use App\Http\Requests\Api\V1\StoreGateUnavailabilityRequest;
@@ -10,6 +11,8 @@ use Illuminate\Http\JsonResponse;
 
 class GateUnavailabilityController extends Controller
 {
+    use RespondsWithPagination;
+
     public function index(ListGateUnavailabilitiesRequest $request): JsonResponse
     {
         $query = GateUnavailability::query();
@@ -26,9 +29,10 @@ class GateUnavailabilityController extends Controller
             $query->where('start_at', '<=', $request->input('to'));
         }
 
-        $unavailabilities = $query->orderBy('start_at')->get();
+        $unavailabilities = $query->orderBy('start_at')
+            ->paginate($request->integer('per_page', 15));
 
-        return response()->json(['data' => $unavailabilities]);
+        return $this->paginatedResponse($unavailabilities);
     }
 
     public function store(StoreGateUnavailabilityRequest $request): JsonResponse

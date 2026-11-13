@@ -106,7 +106,7 @@ Returned when request validation fails. Each field that failed validation is lis
 
 ### `POST /register`
 
-Create a new account. No authentication needed.
+Create a new account. No authentication needed. Rate limited to **10 requests per minute** per IP.
 
 #### Request Body
 
@@ -147,7 +147,7 @@ curl -X POST https://your-app.test/api/v1/register \
 
 ### `POST /login`
 
-Log in and receive a Bearer token (valid for 1 hour). No authentication needed.
+Log in and receive a Bearer token (valid for 1 hour). No authentication needed. Rate limited to **10 requests per minute** per IP.
 
 #### Request Body
 
@@ -242,11 +242,17 @@ curl -X POST https://your-app.test/api/v1/api-keys \
 
 List API-key metadata for the authenticated user. Requires a **Bearer token**. The API key secret and its hash are never returned.
 
+#### Query Parameters
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `per_page` | integer | no | Results per page (1–100, default 15) |
+| `page` | integer | no | Page number |
+
 #### Response (`200 OK`)
 
 ```json
 {
-  "current_page": 1,
   "data": [
     {
       "id": 1,
@@ -257,8 +263,12 @@ List API-key metadata for the authenticated user. Requires a **Bearer token**. T
       "created_at": "2026-04-30T12:00:00.000000Z"
     }
   ],
-  "last_page": 1,
-  "total": 1
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "last_page": 1,
+    "total": 1
+  }
 }
 ```
 
@@ -275,6 +285,12 @@ The API key is deleted and can no longer authenticate requests immediately.
 #### Response (`404 Not Found`)
 
 Returned when the key does not exist or does not belong to the authenticated user.
+
+```json
+{
+  "message": "API key not found."
+}
+```
 
 ---
 
@@ -303,7 +319,6 @@ curl "https://your-app.test/api/v1/allocations?gate_code=A1&per_page=2" \
 
 ```json
 {
-  "current_page": 1,
   "data": [
     {
       "id": 1,
@@ -325,8 +340,12 @@ curl "https://your-app.test/api/v1/allocations?gate_code=A1&per_page=2" \
       }
     }
   ],
-  "last_page": 5,
-  "total": 10
+  "meta": {
+    "current_page": 1,
+    "per_page": 2,
+    "last_page": 5,
+    "total": 10
+  }
 }
 ```
 
@@ -403,7 +422,9 @@ Results are ordered by `start_at` ascending.
 |-------|------|----------|-------------|
 | `gate_id` | integer | no | Filter by gate ID |
 | `from` | datetime | no | Only unavailabilities overlapping with this start date |
-| `to` | datetime | no | Only unavailabilities overlapping with this end date (must be after `from`) |
+| `to` | datetime | no | Only unavailabilities overlapping with this end date (must be on or after `from`) |
+| `per_page` | integer | no | Results per page (1–100, default 15) |
+| `page` | integer | no | Page number |
 
 #### Example
 
@@ -426,7 +447,13 @@ curl "https://your-app.test/api/v1/gates/unavailabilities?gate_id=3&from=2026-05
       "created_at": "2026-04-28T14:00:00.000000Z",
       "updated_at": "2026-04-28T14:00:00.000000Z"
     }
-  ]
+  ],
+  "meta": {
+    "current_page": 1,
+    "per_page": 15,
+    "last_page": 1,
+    "total": 1
+  }
 }
 ```
 
@@ -490,7 +517,7 @@ All metrics are scoped strictly to the requested `from`/`to` interval. The endpo
 | Param | Type | Required | Description |
 |-------|------|----------|-------------|
 | `from` | datetime | **yes** | Start of the period (ISO 8601 or any parseable date) |
-| `to` | datetime | **yes** | End of the period — must be after `from` |
+| `to` | datetime | **yes** | End of the period — must be after `from`, at most 92 days later |
 
 #### Example
 
@@ -627,6 +654,10 @@ Array of up to 5 gates ordered by allocation count descending.
   }
 }
 ```
+
+---
+
+### `POST /system/sync-now`
 
 Trigger a flight sync on demand. Fetches the latest flights from OpenSky and allocates them to gates. Requires an **API key**.
 
