@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Api;
 
 use App\Models\ApiKey;
 use App\Models\Gate;
@@ -73,11 +73,8 @@ class AllocationsApiTest extends TestCase
             ->assertJsonCount(3, 'data')
             ->assertJsonStructure([
                 'data' => [['id', 'gate_id', 'flight_id', 'occupied_from', 'occupied_until']],
-                'current_page',
-                'last_page',
-                'total',
+                'meta' => ['current_page', 'per_page', 'last_page', 'total'],
             ])
-            ->assertJsonMissingPath('per_page')
             ->assertJsonMissingPath('links');
     }
 
@@ -142,8 +139,9 @@ class AllocationsApiTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonCount(2, 'data')
-            ->assertJsonPath('total', 5)
-            ->assertJsonPath('last_page', 3);
+            ->assertJsonPath('meta.total', 5)
+            ->assertJsonPath('meta.per_page', 2)
+            ->assertJsonPath('meta.last_page', 3);
     }
 
     public function test_defaults_to_15_per_page(): void
@@ -151,8 +149,8 @@ class AllocationsApiTest extends TestCase
         GateAllocation::factory()->count(16)->create();
 
         $this->apiGet('/api/v1/allocations')
-            ->assertJsonPath('last_page', 2)
-            ->assertJsonPath('total', 16);
+            ->assertJsonPath('meta.last_page', 2)
+            ->assertJsonPath('meta.total', 16);
     }
 
     // ── Validation ───────────────────────────────────────────────────

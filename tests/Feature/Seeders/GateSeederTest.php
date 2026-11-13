@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Seeders;
 
 use Database\Seeders\GateSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;

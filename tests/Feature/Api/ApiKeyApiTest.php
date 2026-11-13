@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Api;
 
 use App\Models\AccessToken;
 use App\Models\ApiKey;
@@ -169,7 +169,7 @@ class ApiKeyApiTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('total', 2)
+            ->assertJsonPath('meta.total', 2)
             ->assertJsonPath('data.0.id', $newerKey->id)
             ->assertJsonPath('data.1.id', $olderKey->id)
             ->assertJsonMissing(['user_id' => $user->id])
@@ -190,9 +190,9 @@ class ApiKeyApiTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('current_page', 1)
-            ->assertJsonPath('last_page', 2)
-            ->assertJsonPath('total', 16)
+            ->assertJsonPath('meta.current_page', 1)
+            ->assertJsonPath('meta.last_page', 2)
+            ->assertJsonPath('meta.total', 16)
             ->assertJsonCount(15, 'data');
     }
 
@@ -204,6 +204,19 @@ class ApiKeyApiTest extends TestCase
         $this->deleteJson("/api/v1/api-keys/{$apiKey->id}", [], [
             'Authorization' => 'Bearer '.$this->loginAndGetBearerToken($user),
         ])->assertNoContent();
+
+        $this->assertDatabaseMissing('api_keys', ['id' => $apiKey->id]);
+        $this->getJson('/api/v1/allocations', ['X-Api-Key' => $plainTextApiKey])
+            ->assertStatus(401)
+            ->assertJson(['message' => 'Invalid API key.']);
+    }
+
+    public function test_deleting_a_user_also_deletes_their_api_keys(): void
+    {
+        $user = $this->createUser();
+        [$apiKey, $plainTextApiKey] = $this->createApiKey($user, 'Doomed key');
+
+        $user->delete();
 
         $this->assertDatabaseMissing('api_keys', ['id' => $apiKey->id]);
         $this->getJson('/api/v1/allocations', ['X-Api-Key' => $plainTextApiKey])

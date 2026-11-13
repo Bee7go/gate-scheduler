@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Flows;
 
 use App\Models\Flight;
 use App\Models\Gate;

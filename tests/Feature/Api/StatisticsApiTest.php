@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Api;
 
 use App\Models\ApiKey;
 use App\Models\Flight;
@@ -38,6 +38,13 @@ class StatisticsApiTest extends TestCase
     {
         $this->getJson('/api/v1/statistics?from=2026-04-01&to=2026-04-30')
             ->assertStatus(401);
+    }
+
+    public function test_rejects_periods_longer_than_the_maximum_range(): void
+    {
+        $this->apiGet('/api/v1/statistics?from=2026-01-01&to=2026-06-01')
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('to');
     }
 
     // ── Validation ───────────────────────────────────────────────────
