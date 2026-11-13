@@ -140,17 +140,23 @@ class StatisticsService
 
     private function peak(Carbon $from, Carbon $to): array
     {
+        // Fetch overlapping allocations once and count slot overlaps in memory,
+        // instead of issuing one COUNT query per hour/day of the window.
+        $allocations = GateAllocation::where('occupied_from', '<', $to)
+            ->where('occupied_until', '>', $from)
+            ->get(['occupied_from', 'occupied_until']);
+
+        $overlapCount = fn (Carbon $slotStart, Carbon $slotEnd): int => $allocations
+            ->filter(fn ($a) => $a->occupied_from->lt($slotEnd) && $a->occupied_until->gt($slotStart))
+            ->count();
+
         // Busiest hour: for each hour slot, count overlapping allocations
         $busiestHour = null;
         $maxOccupied = 0;
 
         $cursor = $from->copy()->startOfHour();
         while ($cursor->lt($to)) {
-            $hourEnd = $cursor->copy()->addHour();
-
-            $count = GateAllocation::where('occupied_from', '<', $hourEnd)
-                ->where('occupied_until', '>', $cursor)
-                ->count();
+            $count = $overlapCount($cursor, $cursor->copy()->addHour());
 
             if ($count > $maxOccupied) {
                 $maxOccupied = $count;
@@ -166,11 +172,7 @@ class StatisticsService
 
         $dayCursor = $from->copy()->startOfDay();
         while ($dayCursor->lt($to)) {
-            $dayEnd = $dayCursor->copy()->addDay();
-
-            $count = GateAllocation::where('occupied_from', '<', $dayEnd)
-                ->where('occupied_until', '>', $dayCursor)
-                ->count();
+            $count = $overlapCount($dayCursor, $dayCursor->copy()->addDay());
 
             if ($count > $busiestDateAllocations) {
                 $busiestDateAllocations = $count;
@@ -190,21 +192,19 @@ class StatisticsService
 
     private function topGates(Carbon $from, Carbon $to): array
     {
-        return GateAllocation::select('gate_id', DB::raw('COUNT(*) as allocations_count'))
+        return GateAllocation::query()
+            ->join('gates', 'gates.id', '=', 'gate_allocations.gate_id')
+            ->select('gates.code as gate_code', DB::raw('COUNT(*) as allocations_count'))
             ->where('occupied_from', '<', $to)
             ->where('occupied_until', '>', $from)
-            ->groupBy('gate_id')
+            ->groupBy('gates.code')
             ->orderByDesc('allocations_count')
             ->limit(5)
             ->get()
-            ->map(function ($row) {
-                $gate = Gate::find($row->gate_id);
-
-                return [
-                    'gate_code' => $gate->code,
-                    'allocations_count' => (int) $row->allocations_count,
-                ];
-            })
+            ->map(fn ($row) => [
+                'gate_code' => $row->gate_code,
+                'allocations_count' => (int) $row->allocations_count,
+            ])
             ->values()
             ->toArray();
     }

@@ -8,22 +8,25 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
+ * @property int $id
  * @property Carbon|null $first_seen_at
- * @property Carbon $id
+ * @property Carbon|null $last_seen_at
  */
 class Flight extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'code',
+        'icao24',
+        'airport_icao',
+        'direction',
         'first_seen_at',
-        'last_seen_at', // probably not needed now
+        'last_seen_at',
     ];
 
     protected $casts = [
         'first_seen_at' => 'datetime',
-        'last_seen_at' => 'datetime', // probably not needed now
+        'last_seen_at' => 'datetime',
     ];
 
     public function gateAllocation(): HasOne

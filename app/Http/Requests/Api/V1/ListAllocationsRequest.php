@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Http\Requests\Api\V1\Concerns\ValidatesPagination;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class ListAllocationsRequest extends FormRequest
 {
+    use ValidatesPagination;
+
     public function authorize(): bool
     {
         return true;
@@ -24,8 +27,7 @@ class ListAllocationsRequest extends FormRequest
                 'sometimes', 'date',
                 Rule::when($this->filled('occupied_from'), 'after_or_equal:occupied_from'),
             ],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
-            'page' => ['sometimes', 'integer', 'min:1'],
+            ...$this->paginationRules(),
         ];
     }
 }

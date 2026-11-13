@@ -8,14 +8,13 @@ use Illuminate\Support\Collection;
 
 class EarliestAvailableGateSelectionStrategy implements GateSelectionStrategyInterface
 {
-    public function getOrderedGates(?DateTimeInterface $flightStart = null): Collection
+    public function getOrderedGates(DateTimeInterface $flightStart): Collection
     {
-        // find the Gates that will become available the earliest, close to the flight stare
+        // Prefer the gates that become free closest before the flight starts.
         return Gate::query()
             ->withMax('allocations', 'occupied_until')
             ->get()
-            ->sortBy(function ($gate) use ($flightStart) {
-
+            ->sortBy(function (Gate $gate) use ($flightStart) {
                 $lastOccupied = $gate->allocations_max_occupied_until;
 
                 if (! $lastOccupied) {
@@ -29,7 +28,7 @@ class EarliestAvailableGateSelectionStrategy implements GateSelectionStrategyInt
             ->values();
     }
 
-    public function onGateAllocated($gate): void
+    public function onGateAllocated(Gate $gate): void
     {
         // not applicable
     }

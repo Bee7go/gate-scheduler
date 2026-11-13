@@ -20,7 +20,7 @@ class GateAllocationReportService
         // gates unavailable right now
         $blockedGateIds = GateUnavailability::query()
             ->where('start_at', '<=', $now)
-            ->where('end_at', '>=', $now)
+            ->where('end_at', '>', $now)
             ->pluck('gate_id')
             ->unique();
 
@@ -29,7 +29,7 @@ class GateAllocationReportService
         // allocations active right now
         $occupiedGates = GateAllocation::query()
             ->where('occupied_from', '<=', $now)
-            ->where('occupied_until', '>=', $now)
+            ->where('occupied_until', '>', $now)
             ->count('gate_id');
 
         $freeGates = max(0, $totalGates - $blockedGates - $occupiedGates);
@@ -57,7 +57,7 @@ class GateAllocationReportService
         $activeOnBlocked = GateAllocation::query()
             ->whereIn('gate_id', $blockedGateIds)
             ->where('occupied_from', '<=', $now)
-            ->where('occupied_until', '>=', $now)
+            ->where('occupied_until', '>', $now)
             ->count();
 
         if ($activeOnBlocked > 0) {

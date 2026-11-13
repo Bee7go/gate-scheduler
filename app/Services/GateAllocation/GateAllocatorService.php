@@ -13,9 +13,6 @@ use InvalidArgumentException;
 
 class GateAllocatorService
 {
-    /**
-     * Create a new class instance.
-     */
     public function __construct(
         private readonly GateAvailabilityService $availabilityService,
         private readonly GateSelectionStrategyInterface $gateSelectionStrategy
@@ -51,7 +48,10 @@ class GateAllocatorService
                     $stats['unassigned']++;
                 }
             } catch (Exception $e) {
-                Log::error("Failed to allocate flight {$flight->id}: ".$e->getMessage());
+                Log::error('gates.allocate.failed', [
+                    'flight_id' => $flight->id,
+                    'message' => $e->getMessage(),
+                ]);
                 $stats['errors'][] = $flight->id;
             }
         }
@@ -72,7 +72,7 @@ class GateAllocatorService
             return null;
         }
         $from = $flight->first_seen_at;
-        $until = (clone $from)->addMinutes((int) config('services.gates.occupation_minutes', 90));
+        $until = (clone $from)->addMinutes((int) config('services.gates.occupation_minutes'));
 
         $gates = $this->gateSelectionStrategy->getOrderedGates($flight->first_seen_at);
 

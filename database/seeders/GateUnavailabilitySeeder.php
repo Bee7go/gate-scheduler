@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class GateUnavailabilitiesSeeder extends Seeder
+class GateUnavailabilitySeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -20,8 +20,8 @@ class GateUnavailabilitiesSeeder extends Seeder
 
         DB::table('gate_unavailabilities')->insert([
             'gate_id' => $gate->id,
-            'start_at' => '2026-01-10 00:00:00',
-            'end_at' => '2026-03-11 23:59:59',
+            'start_at' => now()->subDay(),
+            'end_at' => now()->addDays(2),
             'reason' => 'maintenance',
             'created_at' => now(),
             'updated_at' => now(),

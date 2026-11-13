@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Controllers\Concerns\RespondsWithPagination;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CreateApiKeyRequest;
+use App\Http\Requests\Api\V1\ListApiKeysRequest;
 use App\Models\ApiKey;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,20 +14,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ApiKeyController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    use RespondsWithPagination;
+
+    public function index(ListApiKeysRequest $request): JsonResponse
     {
         $apiKeys = $request->user()
             ->apiKeys()
             ->select(['id', 'name', 'description', 'last_used_at', 'expires_at', 'created_at'])
             ->latest()
-            ->paginate(15);
+            ->paginate($request->integer('per_page', 15));
 
-        return response()->json([
-            'current_page' => $apiKeys->currentPage(),
-            'data' => $apiKeys->items(),
-            'last_page' => $apiKeys->lastPage(),
-            'total' => $apiKeys->total(),
-        ]);
+        return $this->paginatedResponse($apiKeys);
     }
 
     public function store(CreateApiKeyRequest $request): JsonResponse
@@ -33,19 +32,14 @@ class ApiKeyController extends Controller
         $validated = $request->validated();
         $user = $request->user();
 
-        if (! $user) {
-            return response()->json(['message' => 'Unauthenticated.'], 401);
-        }
-
         $plainTextApiKey = Str::random(64);
-        $expiresAt = now()->addYear();
+        $expiresAt = now()->addDays((int) config('services.auth.api_key_ttl_days'));
 
         $apiKey = ApiKey::create([
             'user_id' => $user->id,
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'key' => hash('sha256', $plainTextApiKey),
-            'last_used_at' => now(),
             'expires_at' => $expiresAt,
         ]);
 
@@ -68,7 +62,7 @@ class ApiKeyController extends Controller
             ->find($apiKey);
 
         if (! $apiKey) {
-            abort(404);
+            return response()->json(['message' => 'API key not found.'], 404);
         }
 
         $apiKey->delete();

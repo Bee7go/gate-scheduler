@@ -6,20 +6,21 @@ use App\Models\Gate;
 use App\Models\GateUnavailability;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends Factory<GateUnavailability>
+ */
 class GateUnavailabilityFactory extends Factory
 {
-    protected $model = GateUnavailability::class;
-
     public function definition(): array
     {
-        $start = $this->faker->dateTimeBetween('-1 week', '+1 week');
+        $start = fake()->dateTimeBetween('-1 week', '+1 week');
         $end = (clone $start)->modify('+2 hours');
 
         return [
             'gate_id' => Gate::factory(),
             'start_at' => $start,
             'end_at' => $end,
-            'reason' => $this->faker->randomElement(['maintenance', 'repairs', 'cleaning']),
+            'reason' => fake()->randomElement(['maintenance', 'repairs', 'cleaning']),
         ];
     }
 

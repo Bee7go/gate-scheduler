@@ -83,7 +83,7 @@ class OpenSkyCircuitBreaker
     public function recordFailure(string $airport, string $direction): void
     {
         $failureThreshold = max(1, (int) config('services.opensky.breaker_failure_threshold', 3));
-        $failureWindowSeconds = max(60, (int) config('services.opensky.breaker_failure_window_seconds', 120));
+        $failureWindowSeconds = max(60, (int) config('services.opensky.breaker_failure_window_seconds', 300));
 
         $cacheKey = $this->getFailuresKey($airport, $direction);
         $failures = (int) Cache::get($cacheKey, 0);
@@ -97,41 +97,14 @@ class OpenSkyCircuitBreaker
     }
 
     /**
-     * Check whether the breaker is currently open for the given scope.
+     * Report the current breaker state for the given scope.
      *
      * @param  string  $airport  ICAO airport code used as part of the breaker scope.
      * @param  string  $direction  Flight direction key, typically arrival or departure.
-     * @return bool True when live calls should currently be blocked.
      */
-    public function isOpen(string $airport, string $direction): bool
-    {
-        return $this->state($airport, $direction) === self::STATE_OPEN;
-    }
-
     public function state(string $airport, string $direction): string
     {
         return $this->getState($airport, $direction);
-    }
-
-    /**
-     * Reset the breaker state and failure counters for the given scope.
-     *
-     * This forces the breaker back to a healthy baseline regardless of its
-     * current state.
-     *
-     * @param  string  $airport  ICAO airport code used as part of the breaker scope.
-     * @param  string  $direction  Flight direction key, typically arrival or departure.
-     */
-    public function reset(string $airport, string $direction): void
-    {
-        Cache::forget($this->getStateKey($airport, $direction));
-        Cache::forget($this->getFailuresKey($airport, $direction));
-        Cache::forget($this->getOpenedAtKey($airport, $direction));
-
-        Log::info('OpenSky circuit breaker reset', [
-            'airport' => $airport,
-            'direction' => $direction,
-        ]);
     }
 
     /**

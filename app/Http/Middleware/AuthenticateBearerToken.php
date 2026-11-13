@@ -18,11 +18,17 @@ class AuthenticateBearerToken
             return response()->json(['message' => 'Bearer token required.'], 401);
         }
 
-        $accessToken = AccessToken::query()
-            ->with('user')
-            ->where('token', hash('sha256', $tokenValue))
-            ->where('expires_at', '>', now())
-            ->first();
+        try {
+            $accessToken = AccessToken::query()
+                ->with('user')
+                ->where('token', hash('sha256', $tokenValue))
+                ->where('expires_at', '>', now())
+                ->first();
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return response()->json(['message' => 'Service unavailable.'], 503);
+        }
 
         if (! $accessToken || ! $accessToken->user) {
             return response()->json(['message' => 'Invalid or expired bearer token.'], 401);

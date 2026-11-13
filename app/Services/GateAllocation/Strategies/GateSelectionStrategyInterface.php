@@ -8,7 +8,11 @@ use Illuminate\Support\Collection;
 
 interface GateSelectionStrategyInterface
 {
-    public function getOrderedGates(?DateTimeInterface $flightStart = null): Collection;
+    /**
+     * Return all gates ordered by allocation preference for a flight
+     * starting at the given time.
+     */
+    public function getOrderedGates(DateTimeInterface $flightStart): Collection;
 
     public function onGateAllocated(Gate $gate): void;
 }

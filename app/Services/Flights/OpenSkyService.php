@@ -27,16 +27,12 @@ class OpenSkyService
     /**
      * Create a new OpenSky service instance.
      *
-     * Dependencies are optional so the service can still be instantiated
-     * directly in tests or simple call sites without resolving it through the
-     * container.
-     *
-     * @param  OpenSkyAuthService|null  $authService  Service used to fetch and cache OpenSky auth tokens.
-     * @param  OpenSkyCircuitBreaker|null  $circuitBreaker  Service used to guard live API calls during repeated failures.
+     * @param  OpenSkyAuthService  $authService  Service used to fetch and cache OpenSky auth tokens.
+     * @param  OpenSkyCircuitBreaker  $circuitBreaker  Service used to guard live API calls during repeated failures.
      */
     public function __construct(
-        private readonly ?OpenSkyAuthService $authService = null,
-        private readonly ?OpenSkyCircuitBreaker $circuitBreaker = null
+        private readonly OpenSkyAuthService $authService = new OpenSkyAuthService,
+        private readonly OpenSkyCircuitBreaker $circuitBreaker = new OpenSkyCircuitBreaker
     ) {}
 
     private const DIRECTIONS = ['arrival', 'departure'];
@@ -73,7 +69,6 @@ class OpenSkyService
             ->where('direction', $direction)
             ->count();
 
-        // @todo could use bulk to insert data
         Flight::upsert(
             $rows,
             ['icao24', 'airport_icao', 'direction'],
@@ -158,7 +153,7 @@ class OpenSkyService
         }
 
         try {
-            $accessToken = ($this->authService ?? new OpenSkyAuthService)->getAccessToken();
+            $accessToken = $this->authService->getAccessToken();
             $lookbackSeconds = config('services.opensky.lookback_seconds');
             $maxAttempts = max(1, (int) config('services.opensky.fetch_max_attempts', 3));
             $baseDelayMs = max(0, (int) config('services.opensky.fetch_retry_base_delay_ms', 500));
@@ -166,7 +161,7 @@ class OpenSkyService
             $begin = now()->subSeconds($lookbackSeconds)->timestamp;
             $end = now()->timestamp;
 
-            $breaker = $this->circuitBreaker ?? new OpenSkyCircuitBreaker;
+            $breaker = $this->circuitBreaker;
 
             if (! $breaker->allows($airport, $direction)) {
                 Log::notice('OpenSky circuit breaker is open, skipping live call', [
