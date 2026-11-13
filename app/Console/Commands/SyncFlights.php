@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Exceptions\SyncInProgressException;
 use App\Jobs\SyncFlightsJob;
 use App\Services\Flights\FlightSyncService;
 use Illuminate\Console\Command;
@@ -25,19 +26,27 @@ class SyncFlights extends Command
     /**
      * Execute the console command.
      */
-    public function handle(FlightSyncService $flightSyncService): void
+    public function handle(FlightSyncService $flightSyncService): int
     {
         if (! $this->option('now')) {
             SyncFlightsJob::dispatch();
 
             $this->info('Flight sync job dispatched to queue');
 
-            return;
+            return self::SUCCESS;
         }
 
-        $result = $flightSyncService->sync('command');
+        try {
+            $result = $flightSyncService->sync('command');
+        } catch (SyncInProgressException $exception) {
+            $this->warn($exception->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->info('Flights synced successfully');
         $this->line(json_encode($result));
+
+        return self::SUCCESS;
     }
 }

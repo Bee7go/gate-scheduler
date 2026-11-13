@@ -2,19 +2,50 @@
 
 namespace App\Services\Flights;
 
+use App\Exceptions\SyncInProgressException;
 use App\Models\SyncRun;
 use App\Services\GateAllocation\GateAllocatorService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class FlightSyncService
 {
+    public const LOCK_KEY = 'sync-flights';
+
+    /**
+     * Comfortably longer than the job timeout (120s) so the lock can never
+     * expire while a sync is still legally running.
+     */
+    public const LOCK_SECONDS = 300;
+
     public function __construct(
         private readonly OpenSkyService $openSkyService,
         private readonly GateAllocatorService $gateAllocator
     ) {}
 
+    /**
+     * Run a full sync guarded by a cache lock so concurrent entry points
+     * (API, queued job, console command) can never overlap.
+     *
+     * @throws SyncInProgressException when another sync holds the lock
+     */
     public function sync(string $trigger = 'manual'): array
+    {
+        $lock = Cache::lock(self::LOCK_KEY, self::LOCK_SECONDS);
+
+        if (! $lock->get()) {
+            throw new SyncInProgressException;
+        }
+
+        try {
+            return $this->runSync($trigger);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function runSync(string $trigger): array
     {
         $airport = config('services.opensky.airport_icao');
         $syncRun = SyncRun::create([

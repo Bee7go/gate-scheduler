@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Services;
 
 use App\Services\Flights\FlightFetchResult;
 use App\Services\Flights\FlightSyncService;
@@ -13,6 +13,15 @@ use Tests\TestCase;
 class SyncObservabilityTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Pin the airport in-code so the Mockery expectations below do not
+        // silently depend on the AIRPORT_ICAO value in phpunit.xml.
+        config(['services.opensky.airport_icao' => 'EHAM']);
+    }
 
     public function test_live_sync_records_completed_run(): void
     {

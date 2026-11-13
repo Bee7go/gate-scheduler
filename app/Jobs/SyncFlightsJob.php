@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Exceptions\SyncInProgressException;
 use App\Services\Flights\FlightSyncService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -31,7 +32,15 @@ class SyncFlightsJob implements ShouldQueue
 
     public function handle(FlightSyncService $flightSyncService): void
     {
-        $summary = $flightSyncService->sync('scheduled');
+        try {
+            $summary = $flightSyncService->sync('scheduled');
+        } catch (SyncInProgressException) {
+            Log::info('queue.job.sync_flights.skipped', [
+                'reason' => 'sync_already_in_progress',
+            ]);
+
+            return;
+        }
 
         Log::info('queue.job.sync_flights.completed', [
             'summary' => $summary,
