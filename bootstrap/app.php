@@ -13,6 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // The app is only reachable through its own reverse proxy (Caddy/nginx),
+        // so trust it — otherwise $request->ip() is the proxy IP and the
+        // per-IP auth rate limit would be shared by every client.
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'auth.apikey' => AuthenticateApiKey::class,
             'auth.bearer' => AuthenticateBearerToken::class,

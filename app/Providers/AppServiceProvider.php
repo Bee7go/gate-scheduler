@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
                 /** @var GateSelectionStrategyFactory $factory */
                 $factory = $app->make(GateSelectionStrategyFactory::class);
 
-                $strategyKey = config('services.gates.allocation_strategy', 'greedy');
+                $strategyKey = config('services.gates.allocation_strategy');
 
                 return $factory->make($strategyKey);
             }
@@ -37,6 +37,10 @@ class AppServiceProvider extends ServiceProvider
     {
         RateLimiter::for('sync-now', function ($request) {
             return Limit::perMinutes(2, 1)->by($request->header('X-Api-Key'));
+        });
+
+        RateLimiter::for('auth', function ($request) {
+            return Limit::perMinute(10)->by($request->ip());
         });
     }
 }

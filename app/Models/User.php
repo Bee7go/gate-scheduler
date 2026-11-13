@@ -22,6 +22,10 @@ class User extends Authenticatable
         'password',
     ];
 
+    protected $casts = [
+        'password' => 'hashed',
+    ];
+
     public function apiKeys(): HasMany
     {
         return $this->hasMany(ApiKey::class);

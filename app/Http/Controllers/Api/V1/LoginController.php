@@ -26,7 +26,7 @@ class LoginController extends Controller
             ], 401);
         }
 
-        $expiresInSeconds = 3600;
+        $expiresInSeconds = (int) config('services.auth.token_ttl_seconds');
         $expiresAt = now()->addSeconds($expiresInSeconds);
         $plainTextAccessToken = Str::random(80);
 
@@ -34,7 +34,6 @@ class LoginController extends Controller
             'user_id' => $user->id,
             'token' => hash('sha256', $plainTextAccessToken),
             'expires_at' => $expiresAt,
-            'last_used_at' => now(),
         ]);
 
         return response()->json([

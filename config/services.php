@@ -52,8 +52,13 @@ return [
     ],
 
     'gates' => [
-        'occupation_minutes' => env('GATE_OCCUPATION_TIME'),
-        'allocation_strategy' => env('GATE_ALLOCATION_STRATEGY'),
+        'occupation_minutes' => env('GATE_OCCUPATION_TIME', 90),
+        'allocation_strategy' => env('GATE_ALLOCATION_STRATEGY', 'greedy'),
+    ],
+
+    'auth' => [
+        'token_ttl_seconds' => env('AUTH_TOKEN_TTL_SECONDS', 3600),
+        'api_key_ttl_days' => env('AUTH_API_KEY_TTL_DAYS', 365),
     ],
 
 ];
