@@ -2,35 +2,28 @@
 
 namespace Tests\Feature\Api;
 
-use App\Models\ApiKey;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\RefreshDatabaseState;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ApiKeyDatabaseFailureTest extends TestCase
 {
-    use RefreshDatabase;
-
     public function test_database_failure_does_not_bypass_api_key_protection(): void
     {
-        $key = 'test-api-key';
-        ApiKey::create(['name' => 'Test Client', 'key' => hash('sha256', $key)]);
+        $originalDefault = config('database.default');
 
-        $pdo = DB::connection('sqlite')->getPdo();
-        DB::purge('sqlite');
-        config(['database.connections.sqlite.database' => '/nonexistent/path/db.sqlite']);
-        DB::reconnect('sqlite');
+        // Route the request through a connection that cannot be established,
+        // without touching the suite's real connection or its transaction state.
+        config([
+            'database.connections.broken' => [
+                'driver' => 'sqlite',
+                'database' => '/nonexistent/path/db.sqlite',
+                'foreign_key_constraints' => false,
+            ],
+            'database.default' => 'broken',
+        ]);
 
-        $response = $this->getJson('/api/v1/statistics', ['X-Api-Key' => $key]);
+        $response = $this->getJson('/api/v1/statistics', ['X-Api-Key' => 'any-key']);
 
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
-        DB::purge('sqlite');
-        config(['database.connections.sqlite.database' => ':memory:']);
-        DB::connection('sqlite')->setPdo($pdo);
-        RefreshDatabaseState::$inMemoryConnections['sqlite'] = $pdo;
+        config(['database.default' => $originalDefault]);
 
         $response->assertStatus(503)
             ->assertJson(['message' => 'Service unavailable.']);
