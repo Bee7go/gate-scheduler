@@ -1,10 +1,15 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "bbadaruta-bd/gate-scheduler",
+    "name": "bee7go/gate-scheduler",
     "type": "project",
     "description": "Airport gate scheduler: pulls live flight data from OpenSky and assigns flights to gates through a REST API.",
     "keywords": ["airport", "gates", "scheduling", "opensky", "laravel", "api"],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Bianca Bădăruță"
+        }
+    ],
     "require": {
         "php": "^8.3",
         "dedoc/scramble": "^0.13.53",
