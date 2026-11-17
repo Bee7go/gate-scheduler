@@ -10,6 +10,12 @@ use Illuminate\Http\JsonResponse;
 
 class GateStatusController extends Controller
 {
+    /**
+     * Get gate status
+     *
+     * The status of every gate — free, occupied, or maintenance — at a given
+     * time (defaults to now), optionally filtered to a single gate.
+     */
     public function index(GateStatusRequest $request, GateStatusService $gateStatusService): JsonResponse
     {
         $at = $request->filled('at')

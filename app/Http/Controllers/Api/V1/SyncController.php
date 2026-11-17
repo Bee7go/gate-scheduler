@@ -9,6 +9,13 @@ use Illuminate\Http\JsonResponse;
 
 class SyncController extends Controller
 {
+    /**
+     * Trigger a flight sync
+     *
+     * Runs a flight sync in-process and returns its summary. Rate limited to
+     * one request per two minutes per API key; responds 409 when another sync
+     * is already running.
+     */
     public function store(FlightSyncService $flightSyncService): JsonResponse
     {
         try {

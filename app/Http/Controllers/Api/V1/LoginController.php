@@ -12,6 +12,12 @@ use Illuminate\Support\Str;
 
 class LoginController extends Controller
 {
+    /**
+     * Log in
+     *
+     * Exchange email and password for a Bearer token used on the API-key
+     * management endpoints. The token is shown once and expires after 1 hour.
+     */
     public function store(LoginUserRequest $request): JsonResponse
     {
         $validated = $request->validated();

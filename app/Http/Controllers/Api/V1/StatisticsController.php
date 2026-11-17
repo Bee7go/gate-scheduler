@@ -10,6 +10,15 @@ use Illuminate\Http\JsonResponse;
 
 class StatisticsController extends Controller
 {
+    /**
+     * Get statistics
+     *
+     * Period-scoped KPIs for dashboards: gate utilization, flight allocation
+     * rates, peak hour and day, top gates, and unavailability summaries.
+     * The period may span at most 92 days (one full calendar quarter), since
+     * peak detection scans the period hour by hour; aggregate across multiple
+     * requests for longer horizons.
+     */
     public function index(StatisticsRequest $request, StatisticsService $service): JsonResponse
     {
         $from = Carbon::parse($request->input('from'));

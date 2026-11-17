@@ -1,5 +1,8 @@
 # API Documentation
 
+> **Interactive docs:** the app serves try-it-enabled documentation at `/docs/api`,
+> generated from the code as an [OpenAPI 3.1 document](openapi.json).
+
 ## Base URL
 
 All endpoints are prefixed with:
@@ -544,6 +547,10 @@ All metrics are scoped strictly to the requested `from`/`to` interval. The endpo
 | `from` | datetime | **yes** | Start of the period (ISO 8601 or any parseable date) |
 | `to` | datetime | **yes** | End of the period — must be after `from`, at most 92 days later |
 
+The range is capped at 92 days — one full calendar quarter — because peak detection
+scans the period hour by hour, so cost grows with the window. For longer horizons,
+aggregate across multiple requests.
+
 #### Example
 
 ```bash
@@ -646,9 +653,9 @@ curl "https://your-app.test/api/v1/statistics?from=2026-04-01T00:00:00Z&to=2026-
 
 | Field | Description |
 |-------|-------------|
-| `busiest_hour` | Hour slot (e.g. `"17:00"`) with the most simultaneous allocations |
+| `busiest_hour` | Hour slot (e.g. `"17:00"`) with the most simultaneous allocations; `null` when the period has no allocations |
 | `max_simultaneous_gates` | Number of gates occupied at the same time during `busiest_hour` |
-| `busiest_date` | Calendar date (e.g. `"2026-04-15"`) with the most overlapping allocations |
+| `busiest_date` | Calendar date (e.g. `"2026-04-15"`) with the most overlapping allocations; `null` when the period has no allocations |
 | `busiest_date_allocations` | Allocation count on `busiest_date` |
 
 **`top_gates`**
@@ -703,12 +710,16 @@ curl -X POST https://your-app.test/api/v1/system/sync-now \
     "arrivals_fetched": 5,
     "departures_fetched": 3,
     "allocation": {
-      "allocated": 4,
-      "unallocated": 1
+      "processed": 8,
+      "assigned": 7,
+      "unassigned": 1,
+      "errors": []
     }
   }
 }
 ```
+
+`allocation.errors` lists the IDs of flights whose allocation attempt failed unexpectedly.
 
 #### Response (`409 Conflict`) — sync already in progress
 
@@ -839,3 +850,7 @@ Sync run statuses:
 - `completed`: arrivals and departures both used live OpenSky data.
 - `degraded`: at least one direction used cached fallback data.
 - `failed`: a direction had neither live nor fallback data, or an unexpected sync error occurred.
+
+A quiet interval is not a failure: OpenSky reports "no flights in this period" as
+a 404, which the sync treats as a live, empty answer — the run completes with a
+fetched count of 0.

@@ -101,6 +101,7 @@ class OpenSkyCircuitBreaker
      *
      * @param  string  $airport  ICAO airport code used as part of the breaker scope.
      * @param  string  $direction  Flight direction key, typically arrival or departure.
+     * @return 'closed'|'open'|'half_open'
      */
     public function state(string $airport, string $direction): string
     {

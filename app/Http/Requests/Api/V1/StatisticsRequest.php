@@ -22,7 +22,17 @@ class StatisticsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            /**
+             * Start of the reporting period (inclusive). Any date or date-time string, e.g. `2026-01-01` or `2026-01-01T06:00:00Z`.
+             *
+             * @example 2026-01-01
+             */
             'from' => ['required', 'date'],
+            /**
+             * End of the reporting period (exclusive). Must be after `from` and at most 92 days later.
+             *
+             * @example 2026-01-31
+             */
             'to' => ['required', 'date', 'after:from'],
         ];
     }

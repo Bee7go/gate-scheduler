@@ -20,6 +20,10 @@ class GateAllocatorService
 
     /**
      * Process unallocated flights and assign them to gates
+     *
+     * @return array{processed: int, assigned: int, unassigned: int, errors: list<int>}
+     *
+     * @scramble-return array{processed: int, assigned: int, unassigned: int, errors: list<int>}
      */
     public function assignUnallocatedFlights(int $limit = 100): array
     {

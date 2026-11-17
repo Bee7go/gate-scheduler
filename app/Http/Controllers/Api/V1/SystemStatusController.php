@@ -9,6 +9,12 @@ use Illuminate\Http\JsonResponse;
 
 class SystemStatusController extends Controller
 {
+    /**
+     * Get system status
+     *
+     * Sync and OpenSky operational status: the latest sync run, its outcome,
+     * and the circuit-breaker state.
+     */
     public function index(OpenSkyCircuitBreaker $circuitBreaker): JsonResponse
     {
         $airport = config('services.opensky.airport_icao');

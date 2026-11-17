@@ -6,7 +6,7 @@
 
 It pulls arrivals and departures from the OpenSky Network, assigns each flight to an available gate using configurable strategies, and exposes a documented, versioned API for allocations, gate status, maintenance windows, and operational statistics.
 
-**[API documentation](docs/API.md)** · **[Versioning policy](docs/API.md#versioning)** · **[Changelog](CHANGELOG.md)** · **[Deployment guide](docs/DEPLOYMENT.md)**
+**[API documentation](docs/API.md)** · **[OpenAPI spec](docs/openapi.json)** · **[Versioning policy](docs/API.md#versioning)** · **[Changelog](CHANGELOG.md)** · **[Deployment guide](docs/DEPLOYMENT.md)**
 
 ---
 
@@ -21,6 +21,8 @@ The interesting part of this project is not the gate allocation — it is the re
 **One sync at a time, whoever asks.** Flight syncs can be triggered by the scheduler, the queue, the CLI, or the API. A shared cache lock serializes them all; concurrent callers get a clean `409`, a skipped job, or a console warning — not a corrupted run.
 
 **One contract, no surprises.** Every paginated endpoint returns the same `{data, meta}` envelope with validated `per_page` and `page` parameters; gate status, a bounded snapshot of the gate inventory, returns a plain `data` array. Error bodies are consistent across endpoints, and the [versioning policy](docs/API.md#versioning) states what `v1` guarantees and what counts as a breaking change.
+
+**A machine-readable contract.** An [OpenAPI 3.1 document](docs/openapi.json) is generated from the actual controllers and validation rules — not maintained by hand — and served as interactive, try-it-enabled documentation at `/docs/api`. A CI job regenerates the spec on every push and fails if the committed copy has drifted from the code.
 
 **Secrets are hashes.** Bearer tokens and API keys are stored as SHA-256 hashes and shown exactly once at creation. Authentication endpoints are rate limited by client IP, read from the fronting proxy's `X-Forwarded-For` header — and in the production topology the app port is reachable only through that proxy, so the header cannot be spoofed from outside.
 
@@ -110,6 +112,10 @@ All endpoints live under `/api/v1`. Authentication uses two layers:
 - **API key** — created with a Bearer token, used for all data endpoints
 
 Full API documentation with examples: **[docs/API.md](docs/API.md)**
+
+Interactive documentation with a try-it console is served by the app itself at **`/docs/api`** (built from the committed [OpenAPI 3.1 spec](docs/openapi.json)).
+
+After changing an endpoint, run `composer run openapi` — it re-exports the committed spec (CI fails when it drifts) and refreshes the cached documentation page.
 
 Quick example — check which gates are free right now:
 

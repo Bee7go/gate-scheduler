@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Hash;
 
 class RegistrationController extends Controller
 {
+    /**
+     * Register
+     *
+     * Create a new user account. Log in afterwards to obtain a Bearer token.
+     */
     public function store(RegisterUserRequest $request): JsonResponse
     {
         $validated = $request->validated();

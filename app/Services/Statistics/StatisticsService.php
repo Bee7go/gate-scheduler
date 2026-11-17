@@ -33,6 +33,11 @@ class StatisticsService
         ];
     }
 
+    /**
+     * @return array{total: int, active: int, had_unavailability: int, utilization_rate: int|float, average_turnaround_minutes: int|null}
+     *
+     * @scramble-return array{total: int, active: int, had_unavailability: int, utilization_rate: int|float, average_turnaround_minutes: int|null}
+     */
     private function gates(Carbon $from, Carbon $to): array
     {
         $totalGates = Gate::count();
@@ -138,6 +143,11 @@ class StatisticsService
         ];
     }
 
+    /**
+     * @return array{busiest_hour: string|null, max_simultaneous_gates: int, busiest_date: string|null, busiest_date_allocations: int}
+     *
+     * @scramble-return array{busiest_hour: string|null, max_simultaneous_gates: int, busiest_date: string|null, busiest_date_allocations: int}
+     */
     private function peak(Carbon $from, Carbon $to): array
     {
         // Fetch overlapping allocations once and count slot overlaps in memory,
@@ -190,6 +200,11 @@ class StatisticsService
         ];
     }
 
+    /**
+     * @return list<array{gate_code: string, allocations_count: int}>
+     *
+     * @scramble-return list<array{gate_code: string, allocations_count: int}>
+     */
     private function topGates(Carbon $from, Carbon $to): array
     {
         return GateAllocation::query()

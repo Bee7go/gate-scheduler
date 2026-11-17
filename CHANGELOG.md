@@ -26,6 +26,10 @@ First stable release. This version defines the `v1` API contract.
 - Unified list responses: paginated endpoints (allocations, gate
   unavailabilities, API keys) share a `{data, meta}` envelope with validated
   `per_page` (1–100) and `page` parameters.
+- Interactive API documentation served at `/docs/api`, backed by an OpenAPI 3.1
+  document (`docs/openapi.json`) generated from the controllers and validation
+  rules, with a CI check that fails when the committed spec drifts from the
+  code.
 - Scheduled background jobs (flight sync every 2 minutes, allocation reports
   every 3 minutes) with bounded retries and failed-job recording. A shared cache
   lock guarantees a single sync at a time across the API, queue, and CLI.

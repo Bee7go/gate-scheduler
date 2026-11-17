@@ -50,6 +50,45 @@ jobs:
       - name: Run test suite
         run: php artisan test
 
+  openapi-drift:
+    name: OpenAPI spec is up to date
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer/files
+          key: ${{ runner.os }}-php-8.4-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.4-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Prepare Laravel environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          touch database/database.sqlite
+          php artisan migrate --force
+
+      - name: Export OpenAPI document
+        run: php artisan scramble:export
+
+      - name: Fail if the committed spec is stale
+        run: git diff --exit-code docs/openapi.json
+
   test-postgres:
     name: Test on PostgreSQL
     runs-on: ubuntu-latest

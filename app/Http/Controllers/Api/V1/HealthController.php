@@ -13,6 +13,13 @@ use Illuminate\Support\Facades\DB;
 
 class HealthController extends Controller
 {
+    /**
+     * Get scheduler health
+     *
+     * Lightweight health summary: active gates, flights, allocations, and the
+     * last successful sync. Responds 503 with a degraded status when the
+     * database is unreachable.
+     */
     public function index(): JsonResponse
     {
         $now = now();

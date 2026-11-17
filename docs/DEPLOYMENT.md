@@ -69,7 +69,10 @@ Wait until both are healthy, then migrate and seed the initial gate inventory:
 ```bash
 docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan migrate --force
 docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan db:seed --force
+docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan scramble:cache
 ```
+
+The last command pre-generates the interactive API documentation served at `/docs/api`; generating it per request is too slow for a web request.
 
 Start the API, worker, scheduler, and HTTPS proxy:
 
@@ -88,6 +91,7 @@ For each release, pull the tested `master` branch, rebuild, apply migrations, th
 git pull --ff-only origin master
 docker compose --env-file .env.production -f docker-compose.production.yml build
 docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan migrate --force
+docker compose --env-file .env.production -f docker-compose.production.yml run --rm app php artisan scramble:cache
 docker compose --env-file .env.production -f docker-compose.production.yml up -d app worker scheduler caddy
 ```
 
