@@ -3,7 +3,9 @@
 namespace Tests\Feature\Services;
 
 use App\Models\Flight;
+use App\Services\Flights\FlightFetchResult;
 use App\Services\Flights\OpenSkyAuthService;
+use App\Services\Flights\OpenSkyCircuitBreaker;
 use App\Services\Flights\OpenSkyService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -231,5 +233,30 @@ class OpenSkyServiceFetchFlightsTest extends TestCase
 
         // No flights endpoint request should be made (breaker is open)
         Http::assertNotSent(fn ($request) => str_contains($request->url(), '/flights/arrival'));
+    }
+
+    /**
+     * OpenSky answers "no flights in this interval" with a 404 instead of an
+     * empty 200. That is a successful, live answer — not an API failure.
+     */
+    public function test_404_means_no_flights_in_interval_not_a_failure(): void
+    {
+        Http::fake([
+            'https://auth.opensky.test/oauth/token' => Http::response(['access_token' => 'fake-token'], 200),
+            'https://opensky-network.org/api/flights/arrival*' => Http::response([], 404),
+        ]);
+
+        $result = $this->service->fetchFlightsWithStatus('EHAM', 'arrival');
+
+        $this->assertTrue($result->isAvailable());
+        $this->assertSame(FlightFetchResult::SOURCE_LIVE, $result->source);
+        $this->assertSame([], $result->flights);
+
+        // A quiet interval is a successful answer: no retries, breaker stays closed.
+        Http::assertSentCount(2);
+        $this->assertSame('closed', (new OpenSkyCircuitBreaker)->state('EHAM', 'arrival'));
+
+        // The empty payload becomes the cached fallback for later degraded runs.
+        $this->assertSame([], Cache::get(self::FALLBACK_KEY));
     }
 }

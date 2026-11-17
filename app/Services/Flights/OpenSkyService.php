@@ -209,6 +209,22 @@ class OpenSkyService
                     }
 
                     $status = $response->status();
+
+                    // OpenSky signals "no flights in this interval" with a 404
+                    // instead of an empty 200 — a normal, successful answer.
+                    if ($status === 404) {
+                        Log::info('OpenSky API reported no flights for the interval', [
+                            'airport' => $airport,
+                            'direction' => $direction,
+                        ]);
+
+                        $this->cacheFlightsPayload($airport, $direction, []);
+
+                        $breaker->recordSuccess($airport, $direction);
+
+                        return new FlightFetchResult([], FlightFetchResult::SOURCE_LIVE);
+                    }
+
                     $isRetryableStatus = $status === 429 || $status >= 500;
 
                     if (! $isRetryableStatus) {
