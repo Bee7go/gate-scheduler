@@ -204,3 +204,9 @@ php artisan test tests/Feature/Api/GateUnavailabilityApiTest.php
 ```
 
 Tests use in-memory SQLite for fast execution; CI additionally runs the full suite against PostgreSQL 17.
+
+---
+
+## License
+
+[MIT](LICENSE)

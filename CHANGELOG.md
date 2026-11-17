@@ -8,6 +8,15 @@ See the [versioning policy](docs/API.md#versioning) for what a version promises 
 
 ## [Unreleased]
 
+### Added
+
+- The OpenAPI document now declares the project's MIT license.
+
+### Fixed
+
+- Date parameter examples in the OpenAPI document now conform to their declared
+  `date-time` format.
+
 ## [1.0.0] - 2026-11-14
 
 First stable release. This version defines the `v1` API contract.

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Services\GateAllocation\Strategies\GateSelectionStrategyFactory;
 use App\Services\GateAllocation\Strategies\GateSelectionStrategyInterface;
 use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\License;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\Operation;
 use Dedoc\Scramble\Support\Generator\Response;
@@ -67,6 +68,8 @@ class AppServiceProvider extends ServiceProvider
 
         Scramble::configure()
             ->withDocumentTransformers(function (OpenApi $openApi) {
+                $openApi->info->setLicense(new License('MIT', identifier: 'MIT'));
+
                 // Default security: the X-Api-Key header used by all data endpoints.
                 $openApi->secure(
                     SecurityScheme::apiKey('header', 'X-Api-Key')

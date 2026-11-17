@@ -26,13 +26,13 @@ class ListGateUnavailabilitiesRequest extends FormRequest
             /**
              * Only windows that end on or after this date or date-time.
              *
-             * @example 2026-01-01
+             * @example 2026-01-01T00:00:00Z
              */
             'from' => ['sometimes', 'date'],
             /**
              * Only windows that start on or before this date or date-time. Must be on or after `from`.
              *
-             * @example 2026-01-31
+             * @example 2026-01-31T00:00:00Z
              */
             'to' => ['sometimes', 'date', 'after_or_equal:from'],
             ...$this->paginationRules(),

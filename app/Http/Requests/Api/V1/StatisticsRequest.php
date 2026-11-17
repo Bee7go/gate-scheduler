@@ -25,13 +25,13 @@ class StatisticsRequest extends FormRequest
             /**
              * Start of the reporting period (inclusive). Any date or date-time string, e.g. `2026-01-01` or `2026-01-01T06:00:00Z`.
              *
-             * @example 2026-01-01
+             * @example 2026-01-01T00:00:00Z
              */
             'from' => ['required', 'date'],
             /**
              * End of the reporting period (exclusive). Must be after `from` and at most 92 days later.
              *
-             * @example 2026-01-31
+             * @example 2026-01-31T00:00:00Z
              */
             'to' => ['required', 'date', 'after:from'],
         ];
