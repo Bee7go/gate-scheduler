@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Concerns\RespondsWithPagination;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\ListAllocationsRequest;
+use App\Http\Resources\Api\V1\GateAllocationResource;
 use App\Models\GateAllocation;
 use Illuminate\Http\JsonResponse;
 
@@ -12,6 +13,12 @@ class AllocationController extends Controller
 {
     use RespondsWithPagination;
 
+    /**
+     * List allocations
+     *
+     * Flight-to-gate allocations with their gate and flight, filterable by
+     * gate code and occupation window.
+     */
     public function index(ListAllocationsRequest $request): JsonResponse
     {
         $query = GateAllocation::with(['gate', 'flight']);
@@ -32,6 +39,9 @@ class AllocationController extends Controller
 
         $allocations = $query->orderBy('occupied_from')->paginate($perPage);
 
-        return $this->paginatedResponse($allocations);
+        return response()->json([
+            'data' => GateAllocationResource::collection($allocations->items()),
+            'meta' => $this->paginationMeta($allocations),
+        ]);
     }
 }

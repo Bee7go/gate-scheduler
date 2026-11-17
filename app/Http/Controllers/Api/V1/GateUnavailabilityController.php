@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\RespondsWithPagination;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\ListGateUnavailabilitiesRequest;
 use App\Http\Requests\Api\V1\StoreGateUnavailabilityRequest;
+use App\Http\Resources\Api\V1\GateUnavailabilityResource;
 use App\Models\GateUnavailability;
 use Illuminate\Http\JsonResponse;
 
@@ -13,6 +14,12 @@ class GateUnavailabilityController extends Controller
 {
     use RespondsWithPagination;
 
+    /**
+     * List gate unavailabilities
+     *
+     * Maintenance and blocking windows, filterable by gate and date range,
+     * ordered by start time.
+     */
     public function index(ListGateUnavailabilitiesRequest $request): JsonResponse
     {
         $query = GateUnavailability::query();
@@ -32,13 +39,22 @@ class GateUnavailabilityController extends Controller
         $unavailabilities = $query->orderBy('start_at')
             ->paginate($request->integer('per_page', 15));
 
-        return $this->paginatedResponse($unavailabilities);
+        return response()->json([
+            'data' => GateUnavailabilityResource::collection($unavailabilities->items()),
+            'meta' => $this->paginationMeta($unavailabilities),
+        ]);
     }
 
+    /**
+     * Create a gate unavailability
+     *
+     * Marks a gate unavailable for a period (maintenance, cleaning, repairs).
+     * The gate is skipped by the allocator while the window is active.
+     */
     public function store(StoreGateUnavailabilityRequest $request): JsonResponse
     {
         $unavailability = GateUnavailability::create($request->validated());
 
-        return response()->json(['data' => $unavailability], 201);
+        return response()->json(['data' => new GateUnavailabilityResource($unavailability)], 201);
     }
 }

@@ -3,24 +3,22 @@
 namespace App\Http\Controllers\Concerns;
 
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Http\JsonResponse;
 
 trait RespondsWithPagination
 {
     /**
-     * Shared envelope for every paginated list endpoint:
-     * {"data": [...], "meta": {current_page, per_page, last_page, total}}.
+     * Shared "meta" block for every paginated list endpoint:
+     * {current_page, per_page, last_page, total}.
+     *
+     * @return array{current_page: int, per_page: int, last_page: int, total: int}
      */
-    protected function paginatedResponse(LengthAwarePaginator $paginator): JsonResponse
+    protected function paginationMeta(LengthAwarePaginator $paginator): array
     {
-        return response()->json([
-            'data' => $paginator->items(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
-                'last_page' => $paginator->lastPage(),
-                'total' => $paginator->total(),
-            ],
-        ]);
+        return [
+            'current_page' => $paginator->currentPage(),
+            'per_page' => $paginator->perPage(),
+            'last_page' => $paginator->lastPage(),
+            'total' => $paginator->total(),
+        ];
     }
 }

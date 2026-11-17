@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\RespondsWithPagination;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CreateApiKeyRequest;
 use App\Http\Requests\Api\V1\ListApiKeysRequest;
+use App\Http\Resources\Api\V1\ApiKeyResource;
 use App\Models\ApiKey;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,12 @@ class ApiKeyController extends Controller
 {
     use RespondsWithPagination;
 
+    /**
+     * List API keys
+     *
+     * Lists metadata for the authenticated user's API keys. Key values are
+     * never returned after creation.
+     */
     public function index(ListApiKeysRequest $request): JsonResponse
     {
         $apiKeys = $request->user()
@@ -24,9 +31,18 @@ class ApiKeyController extends Controller
             ->latest()
             ->paginate($request->integer('per_page', 15));
 
-        return $this->paginatedResponse($apiKeys);
+        return response()->json([
+            'data' => ApiKeyResource::collection($apiKeys->items()),
+            'meta' => $this->paginationMeta($apiKeys),
+        ]);
     }
 
+    /**
+     * Create an API key
+     *
+     * The plain-text key is returned once, at creation — store it safely.
+     * Keys expire after 1 year.
+     */
     public function store(CreateApiKeyRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -55,6 +71,11 @@ class ApiKeyController extends Controller
         ], 201);
     }
 
+    /**
+     * Revoke an API key
+     *
+     * Permanently deletes one of the authenticated user's API keys.
+     */
     public function destroy(Request $request, int $apiKey): Response
     {
         $apiKey = $request->user()
