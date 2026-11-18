@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -52,14 +53,12 @@ class EnforceIdempotency
             $request->getContent() ?: json_encode($request->input()),
         ]));
 
-        // Reserve the key before running the action: of two concurrent
-        // retries, exactly one wins the unique index and executes.
         try {
-            $reservation = IdempotencyKey::create([
+            $reservation = DB::transaction(fn () => IdempotencyKey::create([
                 'credential' => $credential,
                 'idempotency_key' => $key,
                 'request_hash' => $requestHash,
-            ]);
+            ]));
         } catch (UniqueConstraintViolationException) {
             return $this->respondFromExistingRecord($request, $next, $credential, $key, $requestHash);
         }
