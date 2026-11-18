@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Services;
 
+use App\Models\SyncRun;
 use App\Services\Flights\FlightFetchResult;
 use App\Services\Flights\FlightSyncService;
 use App\Services\Flights\OpenSkyService;
@@ -109,6 +110,42 @@ class SyncObservabilityTest extends TestCase
             'trigger' => 'scheduled',
             'status' => 'failed',
             'failure_reason' => 'unexpected_error',
+        ]);
+    }
+
+    public function test_abandoned_running_rows_are_reconciled_on_the_next_sync(): void
+    {
+        // A run whose process was killed hard never records its outcome.
+        $abandoned = SyncRun::create([
+            'trigger' => 'scheduled',
+            'status' => 'running',
+            'started_at' => now()->subSeconds(FlightSyncService::STALE_AFTER_SECONDS + 60),
+        ]);
+
+        // A recent 'running' row could belong to a live process: left alone.
+        $recent = SyncRun::create([
+            'trigger' => 'scheduled',
+            'status' => 'running',
+            'started_at' => now()->subMinute(),
+        ]);
+
+        [$openSky, $allocator] = $this->syncDependencies(
+            new FlightFetchResult([], FlightFetchResult::SOURCE_LIVE),
+            new FlightFetchResult([], FlightFetchResult::SOURCE_LIVE),
+        );
+
+        (new FlightSyncService($openSky, $allocator))->sync('manual');
+
+        $this->assertDatabaseHas('sync_runs', [
+            'id' => $abandoned->id,
+            'status' => 'failed',
+            'failure_reason' => 'abandoned_run',
+        ]);
+        $this->assertNotNull($abandoned->fresh()->finished_at);
+
+        $this->assertDatabaseHas('sync_runs', [
+            'id' => $recent->id,
+            'status' => 'running',
         ]);
     }
 

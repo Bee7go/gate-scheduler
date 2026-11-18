@@ -19,6 +19,14 @@ class FlightSyncService
      */
     public const LOCK_SECONDS = 300;
 
+    /**
+     * Age at which a 'running' row is considered abandoned. Double the lock
+     * TTL, not equal to it: a run that outlives its lock (the in-process
+     * sync-now path has no hard timeout) should not be declared dead the
+     * moment the lock expires.
+     */
+    public const STALE_AFTER_SECONDS = self::LOCK_SECONDS * 2;
+
     public function __construct(
         private readonly OpenSkyService $openSkyService,
         private readonly GateAllocatorService $gateAllocator
@@ -45,8 +53,32 @@ class FlightSyncService
         }
     }
 
+    /**
+     * A run killed hard (worker timeout, crashed process) never reaches the
+     * code that records its outcome, leaving it 'running' forever. We hold the
+     * lock here, so any 'running' row older than the lock lifetime is
+     * provably abandoned — close it out instead of letting /system/status
+     * report a phantom in-progress sync.
+     */
+    private function reconcileAbandonedRuns(): void
+    {
+        $stale = SyncRun::where('status', 'running')
+            ->where('started_at', '<', now()->subSeconds(self::STALE_AFTER_SECONDS))
+            ->update([
+                'status' => 'failed',
+                'failure_reason' => 'abandoned_run',
+                'finished_at' => now(),
+            ]);
+
+        if ($stale > 0) {
+            Log::warning('flight.sync.reconciled_abandoned_runs', ['count' => $stale]);
+        }
+    }
+
     private function runSync(string $trigger): array
     {
+        $this->reconcileAbandonedRuns();
+
         $airport = config('services.opensky.airport_icao');
         $syncRun = SyncRun::create([
             'trigger' => $trigger,
