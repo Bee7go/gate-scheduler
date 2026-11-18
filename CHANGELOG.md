@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 See the [versioning policy](docs/API.md#versioning) for what a version promises API clients.
 
-## [Unreleased]
+## [1.1.0] - 2026-11-18
 
 ### Added
 
@@ -25,6 +25,9 @@ See the [versioning policy](docs/API.md#versioning) for what a version promises 
   for that request. Well-formed client-supplied ids are echoed back.
 - OpenAPI linting (Redocly) in CI alongside the spec drift check.
 - The OpenAPI document now declares the project's MIT license.
+- Errors under `/api` always render as JSON, even without an
+  `Accept: application/json` header — the API never answers with a browser
+  redirect.
 
 ### Fixed
 
@@ -70,5 +73,5 @@ First stable release. This version defines the `v1` API contract.
 - Deployment guide for a single-VM Docker Compose topology (API, worker,
   scheduler, PostgreSQL, Redis, Caddy).
 
-[Unreleased]: https://github.com/Bee7go/gate-scheduler/compare/v1.0.0...HEAD
+[1.1.0]: https://github.com/Bee7go/gate-scheduler/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Bee7go/gate-scheduler/releases/tag/v1.0.0
