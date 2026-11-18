@@ -19,7 +19,7 @@ class ApiDocsTest extends TestCase
 
         $document = $response->json();
 
-        $this->assertSame('1.0.0', $document['info']['version']);
+        $this->assertSame(config('scramble.info.version'), $document['info']['version']);
         $this->assertArrayHasKey('apiKey', $document['components']['securitySchemes']);
         $this->assertArrayHasKey('bearerToken', $document['components']['securitySchemes']);
 
