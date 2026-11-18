@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\ApiErrorCode;
 use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\AuthenticateApiKey;
 use App\Http\Middleware\AuthenticateBearerToken;
@@ -7,9 +8,12 @@ use App\Http\Middleware\EnforceIdempotency;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -50,10 +54,36 @@ return Application::configure(basePath: dirname(__DIR__))
         // field happened to fail first.
         $exceptions->render(function (ValidationException $e, Request $request) {
             if ($request->is('api/*')) {
-                return response()->json([
-                    'message' => 'The request failed validation.',
-                    'errors' => $e->errors(),
-                ], $e->status);
+                return ApiErrorCode::ValidationFailed->response(
+                    'The request failed validation.',
+                    $e->status,
+                    ['errors' => $e->errors()],
+                );
+            }
+        });
+
+        // The framework-generated errors carry a code too, with their
+        // original message text preserved. The throttle response must keep
+        // the exception's headers (Retry-After and the X-RateLimit pair).
+        $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return ApiErrorCode::RateLimited
+                    ->response($e->getMessage() ?: 'Too Many Attempts.', 429)
+                    ->withHeaders($e->getHeaders());
+            }
+        });
+
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return ApiErrorCode::NotFound->response($e->getMessage() ?: 'The requested resource was not found.', 404);
+            }
+        });
+
+        $exceptions->render(function (MethodNotAllowedHttpException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return ApiErrorCode::MethodNotAllowed
+                    ->response($e->getMessage() ?: 'Method not allowed.', 405)
+                    ->withHeaders($e->getHeaders()); // Keeps the Allow header.
             }
         });
     })->create();

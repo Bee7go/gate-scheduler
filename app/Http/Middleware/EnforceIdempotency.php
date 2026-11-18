@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\ApiErrorCode;
 use App\Models\ApiKey;
 use App\Models\IdempotencyKey;
 use Closure;
@@ -38,12 +39,11 @@ class EnforceIdempotency
         if (! is_string($key) || ! preg_match('/^[A-Za-z0-9\-_]{1,255}$/', $key)) {
             // Same shape as every other validation failure: a stable summary
             // plus the per-field detail.
-            return response()->json([
-                'message' => 'The request failed validation.',
+            return ApiErrorCode::ValidationFailed->response('The request failed validation.', 422, [
                 'errors' => [
                     'Idempotency-Key' => ['The Idempotency-Key header must be 1-255 characters (letters, digits, dashes, underscores).'],
                 ],
-            ], 422);
+            ]);
         }
 
         $credential = $this->resolveCredential($request);
@@ -91,11 +91,11 @@ class EnforceIdempotency
         }
 
         if ($recorded->request_hash !== $requestHash) {
-            return response()->json(['message' => 'This Idempotency-Key was already used with a different request.'], 409);
+            return ApiErrorCode::IdempotencyConflict->response('This Idempotency-Key was already used with a different request.', 409);
         }
 
         if ($recorded->response_status === null) {
-            return response()->json(['message' => 'A request with this Idempotency-Key is still in progress. Retry shortly.'], 409);
+            return ApiErrorCode::IdempotencyInProgress->response('A request with this Idempotency-Key is still in progress. Retry shortly.', 409);
         }
 
         return response(Crypt::decryptString($recorded->response_body), $recorded->response_status)

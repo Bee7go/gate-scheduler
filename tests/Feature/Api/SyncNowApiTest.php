@@ -86,6 +86,7 @@ class SyncNowApiTest extends TestCase
             $response = $this->apiPost('/api/v1/system/sync-now');
 
             $response->assertStatus(409)
+                ->assertJsonPath('code', 'sync_in_progress')
                 ->assertJsonPath('message', 'A sync is already in progress. Please try again later.');
         } finally {
             $lock->release();

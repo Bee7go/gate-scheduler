@@ -63,7 +63,7 @@ An API key may be restricted to scopes at creation (`POST /api-keys` with
 | `sync` | `POST /system/sync-now` |
 
 A request outside the key's scopes gets `403` with
-`{"message": "This API key is missing the required scope [write]."}`.
+`{"code": "insufficient_scope", "message": "This API key is missing the required scope [write]."}`.
 
 ### Rate limits
 
@@ -148,7 +148,14 @@ UUID.
 
 ## Error Responses
 
-All validation and authentication errors follow a consistent format.
+Every error the API defines carries a machine-readable `code` and a
+human-readable `message`; only `422` responses additionally carry the
+per-field `errors` map. Branch on `code` — it is part of the contract and
+never changes meaning — not on `message`, whose wording may be refined at any
+time. Two framework-level responses fall outside the catalog and carry
+`message` only: a plain `500 Server Error` and the `503` served while the app
+is in maintenance mode. (`GET /system/health` may also answer `503` with a
+status report body — that is a health signal, not an error in this format.)
 
 ### `401 Unauthorized`
 
@@ -156,7 +163,8 @@ Returned when authentication is missing or invalid.
 
 ```json
 {
-  "message": "Unauthenticated."
+  "code": "authentication_failed",
+  "message": "Invalid API key."
 }
 ```
 
@@ -164,11 +172,11 @@ Returned when authentication is missing or invalid.
 
 Returned when request validation fails. The `message` is always the same
 stable summary; each field that failed validation is listed in `errors` with
-its messages. Every error response carries `message`; only `422` responses
-additionally carry `errors`.
+its messages.
 
 ```json
 {
+  "code": "validation_failed",
   "message": "The request failed validation.",
   "errors": {
     "gate_id": ["The gate id field is required."],
@@ -177,6 +185,24 @@ additionally carry `errors`.
   }
 }
 ```
+
+### Error codes
+
+| Code | Status | When |
+|------|--------|------|
+| `validation_failed` | 422 | A request parameter or the `Idempotency-Key` header failed validation; see `errors`. |
+| `authentication_failed` | 401 | API key or Bearer token missing, invalid, or expired. |
+| `insufficient_scope` | 403 | The API key does not carry the scope the endpoint requires. |
+| `not_found` | 404 | The route or resource does not exist; the message names what was missed. |
+| `method_not_allowed` | 405 | The HTTP method is not supported on this route; the `Allow` header lists the supported ones. |
+| `idempotency_conflict` | 409 | The `Idempotency-Key` was already used with a different request. |
+| `idempotency_in_progress` | 409 | A request with this `Idempotency-Key` is still being processed; retry shortly. |
+| `sync_in_progress` | 409 | Another flight sync is already running. |
+| `rate_limited` | 429 | The rate limit was exceeded; see `Retry-After`. |
+| `service_unavailable` | 503 | The credential store is unreachable; authentication fails closed. |
+
+New codes may be added in minor releases; existing codes never change meaning
+or disappear within `v1`.
 
 ---
 
@@ -268,6 +294,7 @@ curl -X POST https://your-app.test/api/v1/login \
 
 ```json
 {
+  "code": "authentication_failed",
   "message": "Invalid credentials."
 }
 ```
@@ -373,6 +400,7 @@ Returned when the key does not exist or does not belong to the authenticated use
 
 ```json
 {
+  "code": "not_found",
   "message": "API key not found."
 }
 ```
@@ -737,7 +765,8 @@ Array of up to 5 gates ordered by allocation count descending.
 
 ```json
 {
-  "message": "The to field must be a date after from.",
+  "code": "validation_failed",
+  "message": "The request failed validation.",
   "errors": {
     "to": ["The to field must be a date after from."]
   }
@@ -782,6 +811,7 @@ curl -X POST https://your-app.test/api/v1/system/sync-now \
 
 ```json
 {
+  "code": "sync_in_progress",
   "message": "A sync is already in progress. Please try again later."
 }
 ```
@@ -847,6 +877,7 @@ If the API-key lookup succeeds but a later health query fails, all database-back
 
 ```json
 {
+  "code": "service_unavailable",
   "message": "Service unavailable."
 }
 ```

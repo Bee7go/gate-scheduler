@@ -72,7 +72,10 @@ class IdempotencyTest extends TestCase
 
         $this->postUnavailability($different, ['Idempotency-Key' => 'retry-abc'])
             ->assertStatus(409)
-            ->assertJson(['message' => 'This Idempotency-Key was already used with a different request.']);
+            ->assertJson([
+                'code' => 'idempotency_conflict',
+                'message' => 'This Idempotency-Key was already used with a different request.',
+            ]);
 
         $this->assertSame(1, GateUnavailability::count());
     }
@@ -111,7 +114,10 @@ class IdempotencyTest extends TestCase
 
         $this->postUnavailability($this->payload, ['Idempotency-Key' => 'in-flight'])
             ->assertStatus(409)
-            ->assertJson(['message' => 'A request with this Idempotency-Key is still in progress. Retry shortly.']);
+            ->assertJson([
+                'code' => 'idempotency_in_progress',
+                'message' => 'A request with this Idempotency-Key is still in progress. Retry shortly.',
+            ]);
 
         $this->assertSame(0, GateUnavailability::count());
     }

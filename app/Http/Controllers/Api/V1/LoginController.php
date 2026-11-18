@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\ApiErrorCode;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\LoginUserRequest;
 use App\Models\AccessToken;
@@ -27,7 +28,10 @@ class LoginController extends Controller
             ->first();
 
         if (! $user || ! Hash::check($validated['password'], $user->password)) {
+            // Literal array (not the enum helper) so Scramble can infer the
+            // response schema for the spec.
             return response()->json([
+                'code' => ApiErrorCode::AuthenticationFailed->value,
                 'message' => 'Invalid credentials.',
             ], 401);
         }

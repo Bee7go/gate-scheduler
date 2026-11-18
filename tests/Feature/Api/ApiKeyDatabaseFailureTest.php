@@ -26,6 +26,9 @@ class ApiKeyDatabaseFailureTest extends TestCase
         config(['database.default' => $originalDefault]);
 
         $response->assertStatus(503)
-            ->assertJson(['message' => 'Service unavailable.']);
+            ->assertJson([
+                'code' => 'service_unavailable',
+                'message' => 'Service unavailable.',
+            ]);
     }
 }

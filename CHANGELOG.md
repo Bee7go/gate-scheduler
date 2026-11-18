@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 See the [versioning policy](docs/API.md#versioning) for what a version promises API clients.
 
+## [Unreleased]
+
+### Added
+
+- A machine-readable `code` on every error the API defines (for example
+  `validation_failed`, `insufficient_scope`, `rate_limited`,
+  `method_not_allowed`), drawn from a documented catalog so clients can
+  branch on codes instead of message wording. Additive: existing fields,
+  status codes, and message texts are unchanged; only plain `500` and
+  maintenance `503` responses carry no code.
+
+### Changed
+
+- Validation errors (`422`) now carry a stable summary message
+  (`The request failed validation.`); the per-field detail remains in
+  `errors`. The malformed `Idempotency-Key` response uses the same shape.
+
 ## [1.1.0] - 2026-11-18
 
 ### Added
@@ -73,5 +90,6 @@ First stable release. This version defines the `v1` API contract.
 - Deployment guide for a single-VM Docker Compose topology (API, worker,
   scheduler, PostgreSQL, Redis, Caddy).
 
+[Unreleased]: https://github.com/Bee7go/gate-scheduler/compare/v1.1.0...HEAD
 [1.1.0]: https://github.com/Bee7go/gate-scheduler/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Bee7go/gate-scheduler/releases/tag/v1.0.0

@@ -153,11 +153,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -191,11 +198,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -229,11 +243,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -267,11 +288,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -398,11 +426,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -424,11 +459,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -563,11 +605,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -589,11 +638,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -609,17 +665,25 @@
                         }
                     },
                     "409": {
-                        "description": "The Idempotency-Key was already used with a different request.",
+                        "description": "The Idempotency-Key was already used with a different request (`idempotency_conflict`), or the original request is still in progress (`idempotency_in_progress`).",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "idempotency_conflict",
+                                                "idempotency_in_progress"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -679,12 +743,17 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "const": "not_found"
+                                        },
                                         "message": {
                                             "type": "string",
                                             "const": "API key not found."
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -706,11 +775,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -732,11 +808,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -920,11 +1003,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -958,11 +1048,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -996,11 +1093,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1034,11 +1138,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1207,11 +1318,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1245,11 +1363,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1283,11 +1408,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1321,11 +1453,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1442,11 +1581,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1480,11 +1626,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1518,11 +1671,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1556,11 +1716,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1594,17 +1761,25 @@
                         }
                     },
                     "409": {
-                        "description": "The Idempotency-Key was already used with a different request.",
+                        "description": "The Idempotency-Key was already used with a different request (`idempotency_conflict`), or the original request is still in progress (`idempotency_in_progress`).",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "idempotency_conflict",
+                                                "idempotency_in_progress"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1879,11 +2054,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1917,11 +2099,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -1955,11 +2144,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2096,12 +2292,17 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "const": "authentication_failed"
+                                        },
                                         "message": {
                                             "type": "string",
                                             "const": "Invalid credentials."
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2138,11 +2339,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2269,11 +2477,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2590,11 +2805,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2628,11 +2850,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2666,11 +2895,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2704,11 +2940,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2837,11 +3080,16 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "const": "sync_in_progress"
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2875,11 +3123,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2913,11 +3168,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2951,11 +3213,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -2989,11 +3258,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -3205,11 +3481,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -3243,11 +3526,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -3281,11 +3571,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -3319,11 +3616,18 @@
                                 "schema": {
                                     "type": "object",
                                     "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
                                         "message": {
                                             "type": "string"
                                         }
                                     },
                                     "required": [
+                                        "code",
                                         "message"
                                     ]
                                 }
@@ -3761,9 +4065,16 @@
                                             "type": "string"
                                         }
                                     }
+                                },
+                                "code": {
+                                    "type": "string",
+                                    "enum": [
+                                        "validation_failed"
+                                    ]
                                 }
                             },
                             "required": [
+                                "code",
                                 "message",
                                 "errors"
                             ]

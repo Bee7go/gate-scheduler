@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\ApiErrorCode;
 use App\Models\AccessToken;
 use Closure;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class AuthenticateBearerToken
         $tokenValue = $request->bearerToken();
 
         if (! $tokenValue) {
-            return response()->json(['message' => 'Bearer token required.'], 401);
+            return ApiErrorCode::AuthenticationFailed->response('Bearer token required.', 401);
         }
 
         try {
@@ -27,11 +28,11 @@ class AuthenticateBearerToken
         } catch (\Throwable $exception) {
             report($exception);
 
-            return response()->json(['message' => 'Service unavailable.'], 503);
+            return ApiErrorCode::ServiceUnavailable->response('Service unavailable.', 503);
         }
 
         if (! $accessToken || ! $accessToken->user) {
-            return response()->json(['message' => 'Invalid or expired bearer token.'], 401);
+            return ApiErrorCode::AuthenticationFailed->response('Invalid or expired bearer token.', 401);
         }
 
         $accessToken->update(['last_used_at' => now()]);

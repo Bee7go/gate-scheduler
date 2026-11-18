@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Http\ApiErrorCode;
 use App\Http\Controllers\Concerns\RespondsWithPagination;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\CreateApiKeyRequest;
@@ -85,7 +86,12 @@ class ApiKeyController extends Controller
             ->find($apiKey);
 
         if (! $apiKey) {
-            return response()->json(['message' => 'API key not found.'], 404);
+            // Literal array (not the enum helper) so Scramble can infer the
+            // response schema for the spec.
+            return response()->json([
+                'code' => ApiErrorCode::NotFound->value,
+                'message' => 'API key not found.',
+            ], 404);
         }
 
         $apiKey->delete();

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\ApiErrorCode;
 use App\Models\ApiKey;
 use App\Services\GateAllocation\Strategies\GateSelectionStrategyFactory;
 use App\Services\GateAllocation\Strategies\GateSelectionStrategyInterface;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\ValidationException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -94,6 +96,21 @@ class AppServiceProvider extends ServiceProvider
             ->withDocumentTransformers(function (OpenApi $openApi) {
                 $openApi->info->setLicense(new License('MIT', identifier: 'MIT'));
 
+                // Scramble shares one ValidationException response component
+                // across operations (keyed by the exception FQCN until
+                // serialization); the runtime renderer adds a stable `code`,
+                // so document it there too.
+                $validation = $openApi->components->responses['\\'.ValidationException::class] ?? null;
+
+                if ($validation instanceof Response && isset($validation->content['application/json'])) {
+                    $schema = $validation->getContent('application/json');
+
+                    if ($schema instanceof Schema && $schema->type instanceof ObjectType) {
+                        $schema->type->addProperty('code', (new StringType)->enum([ApiErrorCode::ValidationFailed->value]));
+                        $schema->type->setRequired(['code', 'message', 'errors']);
+                    }
+                }
+
                 // Default security: the X-Api-Key header used by all data endpoints.
                 $openApi->secure(
                     SecurityScheme::apiKey('header', 'X-Api-Key')
@@ -122,22 +139,22 @@ class AppServiceProvider extends ServiceProvider
                 // Responses produced by middleware are invisible to static
                 // analysis of the controllers, so document them here.
                 if ($apiKeyEntry !== null) {
-                    $this->addMessageResponse($operation, 401, 'Authentication failed', 'API key missing, invalid, or expired.');
-                    $this->addMessageResponse($operation, 503, 'Service unavailable', 'The credential store is unreachable; authentication fails closed.');
+                    $this->addMessageResponse($operation, 401, 'Authentication failed', 'API key missing, invalid, or expired.', ApiErrorCode::AuthenticationFailed);
+                    $this->addMessageResponse($operation, 503, 'Service unavailable', 'The credential store is unreachable; authentication fails closed.', ApiErrorCode::ServiceUnavailable);
 
                     if (str_contains($apiKeyEntry, ':')) {
                         $scope = substr($apiKeyEntry, strpos($apiKeyEntry, ':') + 1);
-                        $this->addMessageResponse($operation, 403, 'Insufficient scope', "The API key does not carry the `{$scope}` scope this endpoint requires.");
+                        $this->addMessageResponse($operation, 403, 'Insufficient scope', "The API key does not carry the `{$scope}` scope this endpoint requires.", ApiErrorCode::InsufficientScope);
                     }
                 }
 
                 if ($usesBearer) {
-                    $this->addMessageResponse($operation, 401, 'Authentication failed', 'Bearer token missing, invalid, or expired.');
-                    $this->addMessageResponse($operation, 503, 'Service unavailable', 'The credential store is unreachable; authentication fails closed.');
+                    $this->addMessageResponse($operation, 401, 'Authentication failed', 'Bearer token missing, invalid, or expired.', ApiErrorCode::AuthenticationFailed);
+                    $this->addMessageResponse($operation, 503, 'Service unavailable', 'The credential store is unreachable; authentication fails closed.', ApiErrorCode::ServiceUnavailable);
                 }
 
                 if ($middleware->contains(fn ($m) => str_starts_with($m, 'throttle:'))) {
-                    $this->addMessageResponse($operation, 429, 'Too many requests', 'The rate limit for this endpoint was exceeded.');
+                    $this->addMessageResponse($operation, 429, 'Too many requests', 'The rate limit for this endpoint was exceeded.', ApiErrorCode::RateLimited);
                 }
 
                 if ($middleware->contains('idempotency')) {
@@ -146,7 +163,7 @@ class AppServiceProvider extends ServiceProvider
                             ->setSchema(Schema::fromType(new StringType))
                             ->description('Optional, 1-255 characters (letters, digits, dashes, underscores; malformed values are rejected with 422). Retrying with the same key within 24 hours replays the recorded response instead of repeating the action. Reusing a key with a different request returns 409.'),
                     ]);
-                    $this->addMessageResponse($operation, 409, 'Idempotency conflict', 'The Idempotency-Key was already used with a different request.');
+                    $this->addMessageResponse($operation, 409, 'Idempotency conflict', 'The Idempotency-Key was already used with a different request (`idempotency_conflict`), or the original request is still in progress (`idempotency_in_progress`).', ApiErrorCode::IdempotencyConflict, ApiErrorCode::IdempotencyInProgress);
                 }
 
                 // Document the response headers middleware adds.
@@ -181,11 +198,11 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Document a `{"message": "..."}` error response, unless the operation
-     * already documents a (usually richer, controller-derived) response for
-     * that status code.
+     * Document a `{"code": "...", "message": "..."}` error response, unless
+     * the operation already documents a (usually richer, controller-derived)
+     * response for that status code.
      */
-    private function addMessageResponse(Operation $operation, int $status, string $summary, string $description): void
+    private function addMessageResponse(Operation $operation, int $status, string $summary, string $description, ApiErrorCode ...$codes): void
     {
         foreach ($operation->responses ?? [] as $existing) {
             if (($existing->code ?? null) == $status) {
@@ -194,8 +211,9 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $body = new ObjectType;
+        $body->addProperty('code', (new StringType)->enum(array_map(fn (ApiErrorCode $code) => $code->value, $codes)));
         $body->addProperty('message', new StringType);
-        $body->setRequired(['message']);
+        $body->setRequired(['code', 'message']);
 
         $operation->addResponse(
             Response::make($status)
