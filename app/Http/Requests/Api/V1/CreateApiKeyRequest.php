@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Api\V1;
 
+use App\Models\ApiKey;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CreateApiKeyRequest extends FormRequest
 {
@@ -33,6 +35,22 @@ class CreateApiKeyRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:255'],
+            /**
+             * Scopes to restrict the key to. Omit for an unrestricted key.
+             * `read` covers the GET data endpoints, `write` creating gate
+             * unavailabilities, `sync` triggering flight syncs.
+             *
+             * @example ["read", "write"]
+             */
+            'scopes' => ['sometimes', 'array', 'min:1'],
+            'scopes.*' => ['string', Rule::in(ApiKey::SCOPES)],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'scopes.*.in' => 'Each scope must be one of: '.implode(', ', ApiKey::SCOPES).'.',
         ];
     }
 }

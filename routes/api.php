@@ -20,19 +20,22 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth.bearer')->group(function () {
         Route::get('/api-keys', [ApiKeyController::class, 'index']);
-        Route::post('/api-keys', [ApiKeyController::class, 'store']);
+        Route::post('/api-keys', [ApiKeyController::class, 'store'])->middleware('idempotency');
         Route::delete('/api-keys/{apiKey}', [ApiKeyController::class, 'destroy'])->whereNumber('apiKey');
     });
 
-    Route::middleware('auth.apikey')->group(function () {
+    Route::middleware(['auth.apikey:read', 'throttle:api-key'])->group(function () {
         Route::get('/allocations', [AllocationController::class, 'index']);
         Route::get('/gates/status', [GateStatusController::class, 'index']);
         Route::get('/gates/unavailabilities', [GateUnavailabilityController::class, 'index']);
-        Route::post('/gates/unavailabilities', [GateUnavailabilityController::class, 'store']);
-        Route::post('/system/sync-now', [SyncController::class, 'store'])
-            ->middleware('throttle:sync-now');
         Route::get('/system/health', [HealthController::class, 'index']);
         Route::get('/system/status', [SystemStatusController::class, 'index']);
         Route::get('/statistics', [StatisticsController::class, 'index']);
     });
+
+    Route::post('/gates/unavailabilities', [GateUnavailabilityController::class, 'store'])
+        ->middleware(['auth.apikey:write', 'throttle:api-key', 'idempotency']);
+
+    Route::post('/system/sync-now', [SyncController::class, 'store'])
+        ->middleware(['auth.apikey:sync', 'throttle:sync-now', 'throttle:api-key']);
 });

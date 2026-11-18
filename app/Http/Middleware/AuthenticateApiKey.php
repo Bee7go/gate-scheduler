@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AuthenticateApiKey
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, ?string $scope = null): Response
     {
         $key = $request->header('X-Api-Key');
 
@@ -33,7 +33,19 @@ class AuthenticateApiKey
             return response()->json(['message' => 'API key expired.'], 401);
         }
 
-        $apiKey->update(['last_used_at' => now()]);
+        if ($scope !== null && ! $apiKey->allows($scope)) {
+            return response()->json(['message' => "This API key is missing the required scope [{$scope}]."], 403);
+        }
+
+        // Minute resolution is plenty for "last used" — and skipping redundant
+        // writes stops an over-limit flood from hammering this row before the
+        // rate limiter (which runs after auth) starts rejecting.
+        if ($apiKey->last_used_at === null || $apiKey->last_used_at->lt(now()->subMinute())) {
+            $apiKey->update(['last_used_at' => now()]);
+        }
+
+        // Downstream middleware (rate limiting, idempotency) keys off the model.
+        $request->attributes->set('apiKey', $apiKey);
 
         return $next($request);
     }

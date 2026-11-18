@@ -19,6 +19,8 @@ class ApiKeyResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'scopes' => $this->scopes,
+            'rate_limit_per_minute' => $this->rate_limit_per_minute,
             'last_used_at' => $this->last_used_at,
             'expires_at' => $this->expires_at,
             'created_at' => $this->created_at,

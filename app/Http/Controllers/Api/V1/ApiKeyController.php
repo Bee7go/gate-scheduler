@@ -27,7 +27,7 @@ class ApiKeyController extends Controller
     {
         $apiKeys = $request->user()
             ->apiKeys()
-            ->select(['id', 'name', 'description', 'last_used_at', 'expires_at', 'created_at'])
+            ->select(['id', 'name', 'description', 'scopes', 'rate_limit_per_minute', 'last_used_at', 'expires_at', 'created_at'])
             ->latest()
             ->paginate($request->integer('per_page', 15));
 
@@ -56,6 +56,7 @@ class ApiKeyController extends Controller
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
             'key' => hash('sha256', $plainTextApiKey),
+            'scopes' => $validated['scopes'] ?? null,
             'expires_at' => $expiresAt,
         ]);
 
@@ -65,6 +66,7 @@ class ApiKeyController extends Controller
                 'name' => $apiKey->name,
                 'token_type' => 'ApiKey',
                 'api_key' => $plainTextApiKey,
+                'scopes' => $apiKey->scopes,
                 'created_at' => $apiKey->created_at?->toJSON(),
                 'expires_at' => $apiKey->expires_at?->toJSON(),
             ],
