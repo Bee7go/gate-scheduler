@@ -36,7 +36,14 @@ class EnforceIdempotency
         }
 
         if (! is_string($key) || ! preg_match('/^[A-Za-z0-9\-_]{1,255}$/', $key)) {
-            return response()->json(['message' => 'The Idempotency-Key header must be 1-255 characters (letters, digits, dashes, underscores).'], 422);
+            // Same shape as every other validation failure: a stable summary
+            // plus the per-field detail.
+            return response()->json([
+                'message' => 'The request failed validation.',
+                'errors' => [
+                    'Idempotency-Key' => ['The Idempotency-Key header must be 1-255 characters (letters, digits, dashes, underscores).'],
+                ],
+            ], 422);
         }
 
         $credential = $this->resolveCredential($request);

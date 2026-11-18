@@ -162,11 +162,14 @@ Returned when authentication is missing or invalid.
 
 ### `422 Unprocessable Entity`
 
-Returned when request validation fails. Each field that failed validation is listed with its error messages.
+Returned when request validation fails. The `message` is always the same
+stable summary; each field that failed validation is listed in `errors` with
+its messages. Every error response carries `message`; only `422` responses
+additionally carry `errors`.
 
 ```json
 {
-  "message": "The gate id field is required. (and 2 more errors)",
+  "message": "The request failed validation.",
   "errors": {
     "gate_id": ["The gate id field is required."],
     "start_at": ["The start at field is required."],

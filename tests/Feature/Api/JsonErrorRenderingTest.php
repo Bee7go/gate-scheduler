@@ -23,6 +23,14 @@ class JsonErrorRenderingTest extends TestCase
             ->assertJsonValidationErrors(['name', 'email', 'password']);
     }
 
+    public function test_validation_failures_carry_a_stable_summary_message(): void
+    {
+        $this->postJson('/api/v1/register', ['email' => 'not-an-email'])
+            ->assertStatus(422)
+            ->assertJson(['message' => 'The request failed validation.'])
+            ->assertJsonValidationErrors(['name', 'email', 'password']);
+    }
+
     public function test_unknown_api_routes_return_json_without_an_accept_header(): void
     {
         $this->get('/api/v1/nope')

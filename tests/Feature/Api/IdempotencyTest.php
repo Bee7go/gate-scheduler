@@ -80,7 +80,9 @@ class IdempotencyTest extends TestCase
     public function test_a_malformed_idempotency_key_is_rejected(): void
     {
         $this->postUnavailability($this->payload, ['Idempotency-Key' => 'spaces are not allowed'])
-            ->assertStatus(422);
+            ->assertStatus(422)
+            ->assertJson(['message' => 'The request failed validation.'])
+            ->assertJsonValidationErrors(['Idempotency-Key']);
 
         $this->assertSame(0, GateUnavailability::count());
     }

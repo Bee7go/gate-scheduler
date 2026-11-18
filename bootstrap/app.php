@@ -7,7 +7,9 @@ use App\Http\Middleware\EnforceIdempotency;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -42,4 +44,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn ($request) => $request->is('api/*') || $request->expectsJson()
         );
+
+        // One stable summary for every validation failure; the per-field
+        // detail lives in `errors`. Keeps the message independent of which
+        // field happened to fail first.
+        $exceptions->render(function (ValidationException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => 'The request failed validation.',
+                    'errors' => $e->errors(),
+                ], $e->status);
+            }
+        });
     })->create();
