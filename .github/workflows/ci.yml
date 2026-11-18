@@ -89,6 +89,9 @@ jobs:
       - name: Fail if the committed spec is stale
         run: git diff --exit-code docs/openapi.json
 
+      - name: Lint the OpenAPI document
+        run: npx -y @redocly/cli lint docs/openapi.json
+
   test-postgres:
     name: Test on PostgreSQL
     runs-on: ubuntu-latest

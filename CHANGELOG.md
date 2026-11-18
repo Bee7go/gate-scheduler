@@ -10,10 +10,26 @@ See the [versioning policy](docs/API.md#versioning) for what a version promises 
 
 ### Added
 
+- API-key scopes (`read`, `write`, `sync`), chosen at key creation. Keys
+  without scopes remain unrestricted; a request outside a key's scopes
+  returns `403`.
+- Per-key rate limiting on all data endpoints (default 60 requests/minute,
+  adjustable per key by the operator), with
+  `X-RateLimit-Limit`/`X-RateLimit-Remaining` headers and `Retry-After` on
+  `429`.
+- Optional `Idempotency-Key` header on `POST /api-keys` and
+  `POST /gates/unavailabilities`: retries within 24 hours replay the recorded
+  response; reusing a key with a different request returns `409`. Recorded
+  responses are encrypted at rest and pruned after the replay window.
+- `X-Request-Id` on every response, also attached to all log entries written
+  for that request. Well-formed client-supplied ids are echoed back.
+- OpenAPI linting (Redocly) in CI alongside the spec drift check.
 - The OpenAPI document now declares the project's MIT license.
 
 ### Fixed
 
+- Sync runs abandoned by a killed worker no longer stay `running` forever:
+  the next sync marks them `failed` (`abandoned_run`).
 - Date parameter examples in the OpenAPI document now conform to their declared
   `date-time` format.
 

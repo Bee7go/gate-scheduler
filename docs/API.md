@@ -51,6 +51,53 @@ The API uses two layers of authentication:
 
 Both are shown only once when created — store them safely.
 
+### Scopes
+
+An API key may be restricted to scopes at creation (`POST /api-keys` with
+`"scopes": ["read"]`). A key created without scopes is unrestricted.
+
+| Scope | Grants |
+|-------|--------|
+| `read` | All GET data endpoints (allocations, gate status, unavailabilities, statistics, system health/status) |
+| `write` | `POST /gates/unavailabilities` |
+| `sync` | `POST /system/sync-now` |
+
+A request outside the key's scopes gets `403` with
+`{"message": "This API key is missing the required scope [write]."}`.
+
+### Rate limits
+
+Every data endpoint is rate limited **per API key** — 60 requests/minute by
+default (`API_KEY_RATE_LIMIT_PER_MINUTE`), or the key's own
+`rate_limit_per_minute` when set by the operator (there is deliberately no
+API for a client to change its own limit). Responses carry `X-RateLimit-Limit`
+and `X-RateLimit-Remaining`; exceeding the limit returns `429` with a
+`Retry-After` header. The authentication endpoints are limited by IP
+(10/minute) and `POST /system/sync-now` additionally to 1 request per
+2 minutes per key.
+
+### Idempotency
+
+`POST /api-keys` and `POST /gates/unavailabilities` honor an optional
+`Idempotency-Key` header (1–255 characters: letters, digits, dashes,
+underscores). Retrying the same request with the same key within 24 hours
+replays the original response — marked with an `Idempotency-Replayed: true`
+header — instead of repeating the action. Reusing a key with a *different*
+request returns `409`, as does retrying while the first attempt is still in
+progress. A malformed header value is rejected with `422`. Definitive
+responses (including `4xx`) are recorded and replayed; `5xx` responses are
+not, so a genuine server error can be retried. Keys are scoped per
+credential, and recorded responses are encrypted at rest and pruned after
+the 24-hour window.
+
+### Request IDs
+
+Every response carries an `X-Request-Id` header, which also appears in the
+server logs for that request — include it when reporting a problem. You may
+supply your own (up to 64 characters: letters, digits, dashes, underscores)
+and it will be echoed back; malformed values are replaced with a generated
+UUID.
+
 ---
 
 ## Quick Start
@@ -234,6 +281,9 @@ Generate an API key (valid for 1 year). Requires a **Bearer token**.
 |-------|------|----------|-------|
 | `name` | string | yes | Max 255 characters |
 | `description` | string | no | Max 255 characters |
+| `scopes` | string[] | no | Any of `read`, `write`, `sync`; omit for an unrestricted key |
+
+Supports the optional [`Idempotency-Key` header](#idempotency).
 
 #### Example
 
@@ -243,7 +293,8 @@ curl -X POST https://your-app.test/api/v1/api-keys \
   -H "Content-Type: application/json" \
   -d '{
     "name": "My App Key",
-    "description": "Key for production use"
+    "description": "Key for production use",
+    "scopes": ["read", "write"]
   }'
 ```
 
@@ -256,6 +307,7 @@ curl -X POST https://your-app.test/api/v1/api-keys \
     "name": "My App Key",
     "token_type": "ApiKey",
     "api_key": "your-new-api-key-here",
+    "scopes": ["read", "write"],
     "created_at": "2026-04-30T12:00:00.000000Z",
     "expires_at": "2027-04-30T12:00:00.000000Z"
   }
@@ -286,6 +338,8 @@ List API-key metadata for the authenticated user. Requires a **Bearer token**. T
       "id": 1,
       "name": "My App Key",
       "description": "Key for production use",
+      "scopes": ["read", "write"],
+      "rate_limit_per_minute": null,
       "last_used_at": "2026-04-30T12:00:00.000000Z",
       "expires_at": "2027-04-30T12:00:00.000000Z",
       "created_at": "2026-04-30T12:00:00.000000Z"
@@ -324,7 +378,7 @@ Returned when the key does not exist or does not belong to the authenticated use
 
 ### `GET /allocations`
 
-List flight-to-gate allocations. Paginated and filterable. Requires an **API key**.
+List flight-to-gate allocations. Paginated and filterable. Requires an **API key** with the `read` scope.
 
 #### Query Parameters
 
@@ -381,7 +435,7 @@ curl "https://your-app.test/api/v1/allocations?gate_code=A1&per_page=2" \
 
 ### `GET /gates/status`
 
-See the status of every gate at a specific point in time. Requires an **API key**.
+See the status of every gate at a specific point in time. Requires an **API key** with the `read` scope.
 
 Each gate returns one of three statuses:
 - **free** — no flight, no maintenance
@@ -440,7 +494,7 @@ curl "https://your-app.test/api/v1/gates/status?at=2026-05-10T10:00:00Z" \
 
 ### `GET /gates/unavailabilities`
 
-List gate unavailability windows (maintenance, cleaning, etc.). Filterable by gate and date range. Requires an **API key**.
+List gate unavailability windows (maintenance, cleaning, etc.). Filterable by gate and date range. Requires an **API key** with the `read` scope.
 
 Results are ordered by `start_at` ascending.
 
@@ -489,7 +543,7 @@ curl "https://your-app.test/api/v1/gates/unavailabilities?gate_id=3&from=2026-05
 
 ### `POST /gates/unavailabilities`
 
-Mark a gate as unavailable for a period of time. Requires an **API key**.
+Mark a gate as unavailable for a period of time. Requires an **API key** with the `write` scope. Supports the optional [`Idempotency-Key` header](#idempotency).
 
 #### Request Body
 
@@ -536,7 +590,7 @@ curl -X POST https://your-app.test/api/v1/gates/unavailabilities \
 
 ### `GET /statistics`
 
-Return period-scoped statistics useful for building dashboards. Requires an **API key**.
+Return period-scoped statistics useful for building dashboards. Requires an **API key** with the `read` scope.
 
 All metrics are scoped strictly to the requested `from`/`to` interval. The endpoint does not call any external APIs and returns immediately.
 
@@ -691,7 +745,7 @@ Array of up to 5 gates ordered by allocation count descending.
 
 ### `POST /system/sync-now`
 
-Trigger a flight sync on demand. Fetches the latest flights from OpenSky and allocates them to gates. Requires an **API key**.
+Trigger a flight sync on demand. Fetches the latest flights from OpenSky and allocates them to gates. Requires an **API key** with the `sync` scope.
 
 This endpoint is **rate limited** to 1 request per 2 minutes (per API key) and uses a lock to prevent overlapping syncs.
 
@@ -737,7 +791,7 @@ Returned if more than 1 request is made within a 2-minute window.
 
 ### `GET /system/health`
 
-Return a lightweight health summary for the scheduler, database, sync process, and gates. Requires an **API key**.
+Return a lightweight health summary for the scheduler, database, sync process, and gates. Requires an **API key** with the `read` scope.
 
 This endpoint is intentionally cheap — it checks database connectivity and reads a few counts. It does not call any external APIs. The sync timestamp is the latest fully live sync; fallback-backed runs do not advance it.
 
@@ -817,7 +871,7 @@ The detailed degraded response is:
 
 ### `GET /system/status`
 
-Return safe operational information for the latest flight sync and the current OpenSky circuit-breaker state. Requires an **API key**. It does not expose credentials, provider payloads, cache keys, or exception traces.
+Return safe operational information for the latest flight sync and the current OpenSky circuit-breaker state. Requires an **API key** with the `read` scope. It does not expose credentials, provider payloads, cache keys, or exception traces.
 
 #### Response (`200 OK`)
 
@@ -849,7 +903,7 @@ Sync run statuses:
 
 - `completed`: arrivals and departures both used live OpenSky data.
 - `degraded`: at least one direction used cached fallback data.
-- `failed`: a direction had neither live nor fallback data, or an unexpected sync error occurred.
+- `failed`: a direction had neither live nor fallback data, an unexpected sync error occurred, or the run was abandoned by a killed worker (`failure_reason: "abandoned_run"`, applied by the next sync).
 
 A quiet interval is not a failure: OpenSky reports "no flights in this period" as
 a 404, which the sync treats as a live, empty answer — the run completes with a

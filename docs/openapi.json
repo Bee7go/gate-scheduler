@@ -121,6 +121,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "422": {
@@ -142,6 +162,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "503": {
@@ -158,6 +198,108 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `read` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -236,6 +378,14 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "422": {
@@ -257,6 +407,14 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "503": {
@@ -275,6 +433,14 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 },
@@ -290,6 +456,16 @@
                 "summary": "Create an API key",
                 "tags": [
                     "ApiKey"
+                ],
+                "parameters": [
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "description": "Optional, 1-255 characters (letters, digits, dashes, underscores; malformed values are rejected with 422). Retrying with the same key within 24 hours replays the recorded response instead of repeating the action. Reusing a key with a different request returns 409.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "requestBody": {
                     "required": true,
@@ -325,6 +501,13 @@
                                                 "api_key": {
                                                     "type": "string"
                                                 },
+                                                "scopes": {
+                                                    "type": [
+                                                        "array",
+                                                        "null"
+                                                    ],
+                                                    "items": {}
+                                                },
                                                 "created_at": {
                                                     "type": [
                                                         "string",
@@ -343,6 +526,7 @@
                                                 "name",
                                                 "token_type",
                                                 "api_key",
+                                                "scopes",
                                                 "created_at",
                                                 "expires_at"
                                             ]
@@ -351,6 +535,20 @@
                                     "required": [
                                         "data"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Idempotency-Replayed": {
+                                "description": "Present (true) when this response was replayed from an earlier request with the same Idempotency-Key.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -374,6 +572,14 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "503": {
@@ -390,6 +596,40 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "The Idempotency-Key was already used with a different request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -422,7 +662,15 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "No content"
+                        "description": "No content",
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
                     },
                     "404": {
                         "description": "",
@@ -439,6 +687,14 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -459,6 +715,14 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "503": {
@@ -475,6 +739,14 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -616,6 +888,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "422": {
@@ -637,6 +929,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "503": {
@@ -653,6 +965,108 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `read` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -761,6 +1175,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "422": {
@@ -782,6 +1216,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "503": {
@@ -800,6 +1254,108 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `read` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     }
                 }
@@ -810,6 +1366,16 @@
                 "summary": "Create a gate unavailability",
                 "tags": [
                     "GateUnavailability"
+                ],
+                "parameters": [
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "description": "Optional, 1-255 characters (letters, digits, dashes, underscores; malformed values are rejected with 422). Retrying with the same key within 24 hours replays the recorded response instead of repeating the action. Reusing a key with a different request returns 409.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
                 ],
                 "requestBody": {
                     "required": true,
@@ -838,6 +1404,32 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Idempotency-Replayed": {
+                                "description": "Present (true) when this response was replayed from an earlier request with the same Idempotency-Key.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "422": {
@@ -859,6 +1451,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "503": {
@@ -875,6 +1487,146 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `write` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "The Idempotency-Key was already used with a different request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -980,6 +1732,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "200": {
@@ -1078,6 +1850,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "401": {
@@ -1094,6 +1886,108 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `read` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -1173,6 +2067,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "401": {
@@ -1190,6 +2104,26 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -1211,6 +2145,32 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -1277,6 +2237,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "422": {
@@ -1296,6 +2276,32 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -1552,6 +2558,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "422": {
@@ -1573,6 +2599,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "503": {
@@ -1589,6 +2635,108 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `read` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -1660,6 +2808,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "409": {
@@ -1676,6 +2844,26 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -1696,6 +2884,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "503": {
@@ -1714,6 +2922,64 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `sync` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "429": {
@@ -1730,6 +2996,32 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -1884,6 +3176,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "401": {
@@ -1902,6 +3214,26 @@
                                     ]
                                 }
                             }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "503": {
@@ -1918,6 +3250,108 @@
                                     "required": [
                                         "message"
                                     ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `read` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
                                 }
                             }
                         }
@@ -1956,6 +3390,19 @@
                             "null"
                         ]
                     },
+                    "scopes": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {}
+                    },
+                    "rate_limit_per_minute": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
                     "last_used_at": {
                         "type": [
                             "string",
@@ -1982,6 +3429,8 @@
                     "id",
                     "name",
                     "description",
+                    "scopes",
+                    "rate_limit_per_minute",
                     "last_used_at",
                     "expires_at",
                     "created_at"
@@ -2001,6 +3450,25 @@
                             "null"
                         ],
                         "maxLength": 255
+                    },
+                    "scopes": {
+                        "type": "array",
+                        "description": "Scopes to restrict the key to. Omit for an unrestricted key.\n`read` covers the GET data endpoints, `write` creating gate\nunavailabilities, `sync` triggering flight syncs.",
+                        "examples": [
+                            [
+                                "read",
+                                "write"
+                            ]
+                        ],
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "read",
+                                "write",
+                                "sync"
+                            ]
+                        },
+                        "minItems": 1
                     }
                 },
                 "required": [
