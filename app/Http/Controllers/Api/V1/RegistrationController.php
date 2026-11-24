@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\RegisterUserRequest;
 use App\Models\User;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 
+#[Group('Authentication', description: 'Create an account and obtain a Bearer token for API-key management.', weight: 0)]
 class RegistrationController extends Controller
 {
     /**

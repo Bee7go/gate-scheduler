@@ -6,8 +6,10 @@ use App\Exceptions\SyncInProgressException;
 use App\Http\ApiErrorCode;
 use App\Http\Controllers\Controller;
 use App\Services\Flights\FlightSyncService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
+#[Group('System', description: 'On-demand sync, health, and operational status.', weight: 5)]
 class SyncController extends Controller
 {
     /**

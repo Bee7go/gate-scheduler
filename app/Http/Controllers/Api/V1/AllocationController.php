@@ -7,8 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\ListAllocationsRequest;
 use App\Http\Resources\Api\V1\GateAllocationResource;
 use App\Models\GateAllocation;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
+#[Group('Allocations', description: 'Flight-to-gate allocations.', weight: 3)]
 class AllocationController extends Controller
 {
     use RespondsWithPagination;

@@ -8,8 +8,10 @@ use App\Http\Requests\Api\V1\ListGateUnavailabilitiesRequest;
 use App\Http\Requests\Api\V1\StoreGateUnavailabilityRequest;
 use App\Http\Resources\Api\V1\GateUnavailabilityResource;
 use App\Models\GateUnavailability;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
+#[Group('Gates')]
 class GateUnavailabilityController extends Controller
 {
     use RespondsWithPagination;

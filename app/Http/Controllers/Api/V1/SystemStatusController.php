@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\SyncRun;
 use App\Services\Flights\OpenSkyCircuitBreaker;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
+#[Group('System')]
 class SystemStatusController extends Controller
 {
     /**

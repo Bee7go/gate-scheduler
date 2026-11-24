@@ -9,11 +9,13 @@ use App\Http\Requests\Api\V1\CreateApiKeyRequest;
 use App\Http\Requests\Api\V1\ListApiKeysRequest;
 use App\Http\Resources\Api\V1\ApiKeyResource;
 use App\Models\ApiKey;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
+#[Group('API keys', description: 'Create, list, and revoke the API keys used on the data endpoints.', weight: 1)]
 class ApiKeyController extends Controller
 {
     use RespondsWithPagination;

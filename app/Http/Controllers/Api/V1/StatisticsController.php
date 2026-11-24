@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StatisticsRequest;
 use App\Services\Statistics\StatisticsService;
 use Carbon\Carbon;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
+#[Group('Statistics', description: 'Period-scoped KPIs for dashboards.', weight: 4)]
 class StatisticsController extends Controller
 {
     /**

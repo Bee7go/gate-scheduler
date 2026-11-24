@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\GateStatusRequest;
 use App\Services\GateStatus\GateStatusService;
 use Carbon\Carbon;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 
+#[Group('Gates', description: 'Gate status and maintenance windows.', weight: 2)]
 class GateStatusController extends Controller
 {
     /**

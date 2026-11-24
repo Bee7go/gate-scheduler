@@ -8,9 +8,11 @@ use App\Models\Gate;
 use App\Models\GateAllocation;
 use App\Models\GateUnavailability;
 use App\Models\SyncRun;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
+#[Group('System')]
 class HealthController extends Controller
 {
     /**

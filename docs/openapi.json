@@ -14,71 +14,58 @@
             "url": "http://localhost:8000/api/v1"
         }
     ],
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Create an account and obtain a Bearer token for API-key management."
+        },
+        {
+            "name": "API keys",
+            "description": "Create, list, and revoke the API keys used on the data endpoints."
+        },
+        {
+            "name": "Gates",
+            "description": "Gate status and maintenance windows."
+        },
+        {
+            "name": "Allocations",
+            "description": "Flight-to-gate allocations."
+        },
+        {
+            "name": "Statistics",
+            "description": "Period-scoped KPIs for dashboards."
+        },
+        {
+            "name": "System",
+            "description": "On-demand sync, health, and operational status."
+        }
+    ],
     "security": [
         {
             "apiKey": []
         }
     ],
     "paths": {
-        "/allocations": {
-            "get": {
-                "operationId": "allocation.index",
-                "description": "Flight-to-gate allocations with their gate and flight, filterable by\ngate code and occupation window.",
-                "summary": "List allocations",
+        "/register": {
+            "post": {
+                "operationId": "registration.store",
+                "description": "Create a new user account. Log in afterwards to obtain a Bearer token.",
+                "summary": "Register",
                 "tags": [
-                    "Allocation"
+                    "Authentication"
                 ],
-                "parameters": [
-                    {
-                        "name": "gate_code",
-                        "in": "query",
-                        "description": "Only allocations on this gate.",
-                        "schema": {
-                            "type": "string",
-                            "maxLength": 10
-                        },
-                        "example": "A12"
-                    },
-                    {
-                        "name": "occupied_from",
-                        "in": "query",
-                        "description": "Only allocations starting at or after this date or date-time.",
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        },
-                        "example": "2026-01-01T06:00:00Z"
-                    },
-                    {
-                        "name": "occupied_until",
-                        "in": "query",
-                        "description": "Only allocations ending at or before this date or date-time. Must not precede `occupied_from`.",
-                        "schema": {
-                            "type": "string",
-                            "format": "date-time"
-                        },
-                        "example": "2026-01-01T22:00:00Z"
-                    },
-                    {
-                        "name": "per_page",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 100
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "schema": {
-                            "type": "integer",
-                            "minimum": 1
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterUserRequest"
+                            }
                         }
                     }
-                ],
+                },
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "",
                         "content": {
                             "application/json": {
@@ -86,38 +73,34 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/components/schemas/GateAllocationResource"
-                                            }
-                                        },
-                                        "meta": {
                                             "type": "object",
                                             "properties": {
-                                                "current_page": {
+                                                "id": {
                                                     "type": "integer"
                                                 },
-                                                "per_page": {
-                                                    "type": "integer"
+                                                "name": {
+                                                    "type": "string"
                                                 },
-                                                "last_page": {
-                                                    "type": "integer"
+                                                "email": {
+                                                    "type": "string"
                                                 },
-                                                "total": {
-                                                    "type": "integer"
+                                                "created_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
                                                 }
                                             },
                                             "required": [
-                                                "current_page",
-                                                "per_page",
-                                                "last_page",
-                                                "total"
+                                                "id",
+                                                "name",
+                                                "email",
+                                                "created_at"
                                             ]
                                         }
                                     },
                                     "required": [
-                                        "data",
-                                        "meta"
+                                        "data"
                                     ]
                                 }
                             }
@@ -145,141 +128,6 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
-                    },
-                    "401": {
-                        "description": "API key missing, invalid, or expired.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "authentication_failed"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "503": {
-                        "description": "The credential store is unreachable; authentication fails closed.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "service_unavailable"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "The API key does not carry the `read` scope this endpoint requires.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "insufficient_scope"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
                     },
                     "429": {
                         "description": "The rate limit for this endpoint was exceeded.",
@@ -332,7 +180,8 @@
                             }
                         }
                     }
-                }
+                },
+                "security": []
             }
         },
         "/api-keys": {
@@ -341,7 +190,7 @@
                 "description": "Lists metadata for the authenticated user's API keys. Key values are\nnever returned after creation.",
                 "summary": "List API keys",
                 "tags": [
-                    "ApiKey"
+                    "API keys"
                 ],
                 "parameters": [
                     {
@@ -497,7 +346,7 @@
                 "description": "The plain-text key is returned once, at creation \u2014 store it safely.\nKeys expire after 1 year.",
                 "summary": "Create an API key",
                 "tags": [
-                    "ApiKey"
+                    "API keys"
                 ],
                 "parameters": [
                     {
@@ -712,7 +561,7 @@
                 "description": "Permanently deletes one of the authenticated user's API keys.",
                 "summary": "Revoke an API key",
                 "tags": [
-                    "ApiKey"
+                    "API keys"
                 ],
                 "parameters": [
                     {
@@ -848,7 +697,7 @@
                 "description": "The status of every gate \u2014 free, occupied, or maintenance \u2014 at a given\ntime (defaults to now), optionally filtered to a single gate.",
                 "summary": "Get gate status",
                 "tags": [
-                    "GateStatus"
+                    "Gates"
                 ],
                 "parameters": [
                     {
@@ -1185,44 +1034,44 @@
                 }
             }
         },
-        "/gates/unavailabilities": {
+        "/allocations": {
             "get": {
-                "operationId": "gateUnavailability.index",
-                "description": "Maintenance and blocking windows, filterable by gate and date range,\nordered by start time.",
-                "summary": "List gate unavailabilities",
+                "operationId": "allocation.index",
+                "description": "Flight-to-gate allocations with their gate and flight, filterable by\ngate code and occupation window.",
+                "summary": "List allocations",
                 "tags": [
-                    "GateUnavailability"
+                    "Allocations"
                 ],
                 "parameters": [
                     {
-                        "name": "gate_id",
+                        "name": "gate_code",
                         "in": "query",
-                        "description": "Only unavailabilities for this gate.",
+                        "description": "Only allocations on this gate.",
                         "schema": {
-                            "type": "integer",
-                            "minimum": 1
+                            "type": "string",
+                            "maxLength": 10
                         },
-                        "example": 3
+                        "example": "A12"
                     },
                     {
-                        "name": "from",
+                        "name": "occupied_from",
                         "in": "query",
-                        "description": "Only windows that end on or after this date or date-time.",
+                        "description": "Only allocations starting at or after this date or date-time.",
                         "schema": {
                             "type": "string",
                             "format": "date-time"
                         },
-                        "example": "2026-01-01T00:00:00Z"
+                        "example": "2026-01-01T06:00:00Z"
                     },
                     {
-                        "name": "to",
+                        "name": "occupied_until",
                         "in": "query",
-                        "description": "Only windows that start on or before this date or date-time. Must be on or after `from`.",
+                        "description": "Only allocations ending at or before this date or date-time. Must not precede `occupied_from`.",
                         "schema": {
                             "type": "string",
                             "format": "date-time"
                         },
-                        "example": "2026-01-31T00:00:00Z"
+                        "example": "2026-01-01T22:00:00Z"
                     },
                     {
                         "name": "per_page",
@@ -1253,7 +1102,7 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/GateUnavailabilityResource"
+                                                "$ref": "#/components/schemas/GateAllocationResource"
                                             }
                                         },
                                         "meta": {
@@ -1498,1031 +1347,6 @@
                         }
                     }
                 }
-            },
-            "post": {
-                "operationId": "gateUnavailability.store",
-                "description": "Marks a gate unavailable for a period (maintenance, cleaning, repairs).\nThe gate is skipped by the allocator while the window is active.",
-                "summary": "Create a gate unavailability",
-                "tags": [
-                    "GateUnavailability"
-                ],
-                "parameters": [
-                    {
-                        "name": "Idempotency-Key",
-                        "in": "header",
-                        "description": "Optional, 1-255 characters (letters, digits, dashes, underscores; malformed values are rejected with 422). Retrying with the same key within 24 hours replays the recorded response instead of repeating the action. Reusing a key with a different request returns 409.",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/StoreGateUnavailabilityRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/components/schemas/GateUnavailabilityResource"
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "Idempotency-Replayed": {
-                                "description": "Present (true) when this response was replayed from an earlier request with the same Idempotency-Key.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
-                    "401": {
-                        "description": "API key missing, invalid, or expired.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "authentication_failed"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "503": {
-                        "description": "The credential store is unreachable; authentication fails closed.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "service_unavailable"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "The API key does not carry the `write` scope this endpoint requires.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "insufficient_scope"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "429": {
-                        "description": "The rate limit for this endpoint was exceeded.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "rate_limited"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "Retry-After": {
-                                "description": "Seconds to wait before retrying.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "409": {
-                        "description": "The Idempotency-Key was already used with a different request (`idempotency_conflict`), or the original request is still in progress (`idempotency_in_progress`).",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "idempotency_conflict",
-                                                "idempotency_in_progress"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/system/health": {
-            "get": {
-                "operationId": "health.index",
-                "description": "Lightweight health summary: active gates, flights, allocations, and the\nlast successful sync. Responds 503 with a degraded status when the\ndatabase is unreachable.",
-                "summary": "Get scheduler health",
-                "tags": [
-                    "Health"
-                ],
-                "responses": {
-                    "503": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "status": {
-                                                    "type": "string",
-                                                    "const": "degraded"
-                                                },
-                                                "database": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "const": "unreachable"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "status"
-                                                    ]
-                                                },
-                                                "sync": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "last_synced_at": {
-                                                            "type": "null"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "last_synced_at"
-                                                    ]
-                                                },
-                                                "flights": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "total": {
-                                                            "type": "null"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "total"
-                                                    ]
-                                                },
-                                                "gates": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "total": {
-                                                            "type": "null"
-                                                        },
-                                                        "active_allocations": {
-                                                            "type": "null"
-                                                        },
-                                                        "active_unavailabilities": {
-                                                            "type": "null"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "total",
-                                                        "active_allocations",
-                                                        "active_unavailabilities"
-                                                    ]
-                                                },
-                                                "checked_at": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "status",
-                                                "database",
-                                                "sync",
-                                                "flights",
-                                                "gates",
-                                                "checked_at"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "status": {
-                                                    "type": "string",
-                                                    "const": "healthy"
-                                                },
-                                                "database": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "status": {
-                                                            "type": "string",
-                                                            "const": "ok"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "status"
-                                                    ]
-                                                },
-                                                "sync": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "last_synced_at": {
-                                                            "type": [
-                                                                "string",
-                                                                "null"
-                                                            ]
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "last_synced_at"
-                                                    ]
-                                                },
-                                                "flights": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "total": {
-                                                            "type": "integer",
-                                                            "minimum": 0
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "total"
-                                                    ]
-                                                },
-                                                "gates": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "total": {
-                                                            "type": "integer",
-                                                            "minimum": 0
-                                                        },
-                                                        "active_allocations": {
-                                                            "type": "integer",
-                                                            "minimum": 0
-                                                        },
-                                                        "active_unavailabilities": {
-                                                            "type": "integer",
-                                                            "minimum": 0
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "total",
-                                                        "active_allocations",
-                                                        "active_unavailabilities"
-                                                    ]
-                                                },
-                                                "checked_at": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "status",
-                                                "database",
-                                                "sync",
-                                                "flights",
-                                                "gates",
-                                                "checked_at"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "API key missing, invalid, or expired.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "authentication_failed"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "The API key does not carry the `read` scope this endpoint requires.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "insufficient_scope"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "429": {
-                        "description": "The rate limit for this endpoint was exceeded.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "rate_limited"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "Retry-After": {
-                                "description": "Seconds to wait before retrying.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/login": {
-            "post": {
-                "operationId": "login.store",
-                "description": "Exchange email and password for a Bearer token used on the API-key\nmanagement endpoints. The token is shown once and expires after 1 hour.",
-                "summary": "Log in",
-                "tags": [
-                    "Login"
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/LoginUserRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "token_type": {
-                                                    "type": "string",
-                                                    "const": "Bearer"
-                                                },
-                                                "access_token": {
-                                                    "type": "string"
-                                                },
-                                                "expires_in": {
-                                                    "type": "integer"
-                                                },
-                                                "user": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
-                                                        },
-                                                        "name": {
-                                                            "type": "string"
-                                                        },
-                                                        "email": {
-                                                            "type": "string"
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "id",
-                                                        "name",
-                                                        "email"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "token_type",
-                                                "access_token",
-                                                "expires_in",
-                                                "user"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "const": "authentication_failed"
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "const": "Invalid credentials."
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
-                    "429": {
-                        "description": "The rate limit for this endpoint was exceeded.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "rate_limited"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "Retry-After": {
-                                "description": "Seconds to wait before retrying.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": []
-            }
-        },
-        "/register": {
-            "post": {
-                "operationId": "registration.store",
-                "description": "Create a new user account. Log in afterwards to obtain a Bearer token.",
-                "summary": "Register",
-                "tags": [
-                    "Registration"
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/RegisterUserRequest"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "object",
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer"
-                                                },
-                                                "name": {
-                                                    "type": "string"
-                                                },
-                                                "email": {
-                                                    "type": "string"
-                                                },
-                                                "created_at": {
-                                                    "type": [
-                                                        "string",
-                                                        "null"
-                                                    ]
-                                                }
-                                            },
-                                            "required": [
-                                                "id",
-                                                "name",
-                                                "email",
-                                                "created_at"
-                                            ]
-                                        }
-                                    },
-                                    "required": [
-                                        "data"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "$ref": "#/components/responses/ValidationException"
-                    },
-                    "429": {
-                        "description": "The rate limit for this endpoint was exceeded.",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "properties": {
-                                        "code": {
-                                            "type": "string",
-                                            "enum": [
-                                                "rate_limited"
-                                            ]
-                                        },
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "required": [
-                                        "code",
-                                        "message"
-                                    ]
-                                }
-                            }
-                        },
-                        "headers": {
-                            "X-Request-Id": {
-                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Limit": {
-                                "description": "The rate limit that applies to this credential.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "X-RateLimit-Remaining": {
-                                "description": "Requests remaining in the current window.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "Retry-After": {
-                                "description": "Seconds to wait before retrying.",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": []
             }
         },
         "/statistics": {
@@ -2993,7 +1817,7 @@
                 "description": "Runs a flight sync in-process and returns its summary. Rate limited to\none request per two minutes per API key; responds 409 when another sync\nis already running.",
                 "summary": "Trigger a flight sync",
                 "tags": [
-                    "Sync"
+                    "System"
                 ],
                 "responses": {
                     "200": {
@@ -3305,13 +2129,1215 @@
                 }
             }
         },
+        "/login": {
+            "post": {
+                "operationId": "login.store",
+                "description": "Exchange email and password for a Bearer token used on the API-key\nmanagement endpoints. The token is shown once and expires after 1 hour.",
+                "summary": "Log in",
+                "tags": [
+                    "Authentication"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginUserRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "token_type": {
+                                                    "type": "string",
+                                                    "const": "Bearer"
+                                                },
+                                                "access_token": {
+                                                    "type": "string"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer"
+                                                },
+                                                "user": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        },
+                                                        "name": {
+                                                            "type": "string"
+                                                        },
+                                                        "email": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "id",
+                                                        "name",
+                                                        "email"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "token_type",
+                                                "access_token",
+                                                "expires_in",
+                                                "user"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "const": "authentication_failed"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "const": "Invalid credentials."
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": []
+            }
+        },
+        "/gates/unavailabilities": {
+            "get": {
+                "operationId": "gateUnavailability.index",
+                "description": "Maintenance and blocking windows, filterable by gate and date range,\nordered by start time.",
+                "summary": "List gate unavailabilities",
+                "tags": [
+                    "Gates"
+                ],
+                "parameters": [
+                    {
+                        "name": "gate_id",
+                        "in": "query",
+                        "description": "Only unavailabilities for this gate.",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        "example": 3
+                    },
+                    {
+                        "name": "from",
+                        "in": "query",
+                        "description": "Only windows that end on or after this date or date-time.",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "example": "2026-01-01T00:00:00Z"
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "description": "Only windows that start on or before this date or date-time. Must be on or after `from`.",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "example": "2026-01-31T00:00:00Z"
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/GateUnavailabilityResource"
+                                            }
+                                        },
+                                        "meta": {
+                                            "type": "object",
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "required": [
+                                                "current_page",
+                                                "per_page",
+                                                "last_page",
+                                                "total"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data",
+                                        "meta"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "description": "API key missing, invalid, or expired.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "The credential store is unreachable; authentication fails closed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `read` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "gateUnavailability.store",
+                "description": "Marks a gate unavailable for a period (maintenance, cleaning, repairs).\nThe gate is skipped by the allocator while the window is active.",
+                "summary": "Create a gate unavailability",
+                "tags": [
+                    "Gates"
+                ],
+                "parameters": [
+                    {
+                        "name": "Idempotency-Key",
+                        "in": "header",
+                        "description": "Optional, 1-255 characters (letters, digits, dashes, underscores; malformed values are rejected with 422). Retrying with the same key within 24 hours replays the recorded response instead of repeating the action. Reusing a key with a different request returns 409.",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreGateUnavailabilityRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/GateUnavailabilityResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Idempotency-Replayed": {
+                                "description": "Present (true) when this response was replayed from an earlier request with the same Idempotency-Key.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    },
+                    "401": {
+                        "description": "API key missing, invalid, or expired.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "The credential store is unreachable; authentication fails closed.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "service_unavailable"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `write` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "The Idempotency-Key was already used with a different request (`idempotency_conflict`), or the original request is still in progress (`idempotency_in_progress`).",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "idempotency_conflict",
+                                                "idempotency_in_progress"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/system/health": {
+            "get": {
+                "operationId": "health.index",
+                "description": "Lightweight health summary: active gates, flights, allocations, and the\nlast successful sync. Responds 503 with a degraded status when the\ndatabase is unreachable.",
+                "summary": "Get scheduler health",
+                "tags": [
+                    "System"
+                ],
+                "responses": {
+                    "503": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "status": {
+                                                    "type": "string",
+                                                    "const": "degraded"
+                                                },
+                                                "database": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string",
+                                                            "const": "unreachable"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "status"
+                                                    ]
+                                                },
+                                                "sync": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "last_synced_at": {
+                                                            "type": "null"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "last_synced_at"
+                                                    ]
+                                                },
+                                                "flights": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "null"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total"
+                                                    ]
+                                                },
+                                                "gates": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "null"
+                                                        },
+                                                        "active_allocations": {
+                                                            "type": "null"
+                                                        },
+                                                        "active_unavailabilities": {
+                                                            "type": "null"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total",
+                                                        "active_allocations",
+                                                        "active_unavailabilities"
+                                                    ]
+                                                },
+                                                "checked_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "status",
+                                                "database",
+                                                "sync",
+                                                "flights",
+                                                "gates",
+                                                "checked_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "status": {
+                                                    "type": "string",
+                                                    "const": "healthy"
+                                                },
+                                                "database": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "status": {
+                                                            "type": "string",
+                                                            "const": "ok"
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "status"
+                                                    ]
+                                                },
+                                                "sync": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "last_synced_at": {
+                                                            "type": [
+                                                                "string",
+                                                                "null"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "last_synced_at"
+                                                    ]
+                                                },
+                                                "flights": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total"
+                                                    ]
+                                                },
+                                                "gates": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "total": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "active_allocations": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        },
+                                                        "active_unavailabilities": {
+                                                            "type": "integer",
+                                                            "minimum": 0
+                                                        }
+                                                    },
+                                                    "required": [
+                                                        "total",
+                                                        "active_allocations",
+                                                        "active_unavailabilities"
+                                                    ]
+                                                },
+                                                "checked_at": {
+                                                    "type": [
+                                                        "string",
+                                                        "null"
+                                                    ]
+                                                }
+                                            },
+                                            "required": [
+                                                "status",
+                                                "database",
+                                                "sync",
+                                                "flights",
+                                                "gates",
+                                                "checked_at"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "API key missing, invalid, or expired.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "authentication_failed"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The API key does not carry the `read` scope this endpoint requires.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "insufficient_scope"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "The rate limit for this endpoint was exceeded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {
+                                            "type": "string",
+                                            "enum": [
+                                                "rate_limited"
+                                            ]
+                                        },
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "required": [
+                                        "code",
+                                        "message"
+                                    ]
+                                }
+                            }
+                        },
+                        "headers": {
+                            "X-Request-Id": {
+                                "description": "Unique id for this request; also attached to the server logs. Echoes a well-formed client-supplied X-Request-Id.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Limit": {
+                                "description": "The rate limit that applies to this credential.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "X-RateLimit-Remaining": {
+                                "description": "Requests remaining in the current window.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "Retry-After": {
+                                "description": "Seconds to wait before retrying.",
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/system/status": {
             "get": {
                 "operationId": "systemStatus.index",
                 "description": "Sync and OpenSky operational status: the latest sync run, its outcome,\nand the circuit-breaker state.",
                 "summary": "Get system status",
                 "tags": [
-                    "SystemStatus"
+                    "System"
                 ],
                 "responses": {
                     "200": {
