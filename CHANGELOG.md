@@ -19,6 +19,9 @@ See the [versioning policy](docs/API.md#versioning) for what a version promises 
 
 ### Changed
 
+- Passwords are hashed with Argon2id instead of bcrypt. Existing bcrypt
+  hashes keep verifying and are upgraded transparently on the next
+  successful login.
 - Validation errors (`422`) now carry a stable summary message
   (`The request failed validation.`); the per-field detail remains in
   `errors`. The malformed `Idempotency-Key` response uses the same shape.

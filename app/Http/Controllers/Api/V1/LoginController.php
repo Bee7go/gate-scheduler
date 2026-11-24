@@ -38,6 +38,13 @@ class LoginController extends Controller
             ], 401);
         }
 
+        // Transparent hash upgrades: a password stored under an older driver
+        // or cost (e.g. bcrypt from before the argon2id switch) is rehashed
+        // the first time it verifies.
+        if (Hash::needsRehash($user->password)) {
+            $user->update(['password' => Hash::make($validated['password'])]);
+        }
+
         $expiresInSeconds = (int) config('services.auth.token_ttl_seconds');
         $expiresAt = now()->addSeconds($expiresInSeconds);
         $plainTextAccessToken = Str::random(80);

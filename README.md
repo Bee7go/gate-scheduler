@@ -26,7 +26,7 @@ The interesting part of this project is not the gate allocation — it is the re
 
 **A machine-readable contract.** An [OpenAPI 3.1 document](docs/openapi.json) is generated from the actual controllers and validation rules — not maintained by hand — and served as interactive, try-it-enabled documentation at `/docs/api`. A CI job regenerates the spec on every push and fails if the committed copy has drifted from the code.
 
-**Secrets are hashes.** Bearer tokens and API keys are stored as SHA-256 hashes and shown exactly once at creation. Authentication endpoints are rate limited by client IP, read from the fronting proxy's `X-Forwarded-For` header — and in the production topology the app port is reachable only through that proxy, so the header cannot be spoofed from outside.
+**Secrets are hashes.** Passwords are hashed with Argon2id (pre-existing bcrypt hashes upgrade transparently at login); Bearer tokens and API keys are stored as SHA-256 hashes and shown exactly once at creation. Authentication endpoints are rate limited by client IP, read from the fronting proxy's `X-Forwarded-For` header — and in the production topology the app port is reachable only through that proxy, so the header cannot be spoofed from outside.
 
 **Tested like it matters.** The suite covers authentication edge cases (expired keys, cross-user revocation, database failure), allocation strategy behavior, circuit-breaker transitions, queue retry policy, and an end-to-end flow from fetch to allocation. CI runs it on both SQLite and PostgreSQL 17, plus a code-style gate.
 
