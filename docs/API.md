@@ -439,9 +439,13 @@ curl "https://your-app.test/api/v1/allocations?gate_code=A1&per_page=2" \
       "flight_id": 7,
       "occupied_from": "2026-04-30T10:00:00.000000Z",
       "occupied_until": "2026-04-30T11:30:00.000000Z",
+      "created_at": "2026-04-30T10:00:02.000000Z",
+      "updated_at": "2026-04-30T10:00:02.000000Z",
       "gate": {
         "id": 1,
-        "code": "A1"
+        "code": "A1",
+        "created_at": "2026-04-01T08:00:00.000000Z",
+        "updated_at": "2026-04-01T08:00:00.000000Z"
       },
       "flight": {
         "id": 7,
@@ -449,7 +453,9 @@ curl "https://your-app.test/api/v1/allocations?gate_code=A1&per_page=2" \
         "airport_icao": "EHAM",
         "direction": "arrival",
         "first_seen_at": "2026-04-30T09:45:00.000000Z",
-        "last_seen_at": "2026-04-30T10:00:00.000000Z"
+        "last_seen_at": "2026-04-30T10:00:00.000000Z",
+        "created_at": "2026-04-30T10:00:01.000000Z",
+        "updated_at": "2026-04-30T10:00:01.000000Z"
       }
     }
   ],
