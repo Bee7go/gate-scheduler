@@ -9,8 +9,10 @@ use Illuminate\Validation\Validator;
 class StatisticsRequest extends FormRequest
 {
     /**
-     * Upper bound for the statistics window; the per-hour peak scan grows
-     * linearly with the range, so an unbounded range is a DoS vector.
+     * Upper bound for the statistics window; the per-hour peak scan checks
+     * every hourly slot against every overlapping allocation, so cost grows
+     * faster than linearly with the range — an unbounded range is a DoS
+     * vector.
      */
     public const MAX_RANGE_DAYS = 92;
 

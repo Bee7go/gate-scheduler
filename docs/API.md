@@ -640,7 +640,7 @@ All metrics are scoped strictly to the requested `from`/`to` interval. The endpo
 
 The range is capped at 92 days — one full calendar quarter — because peak detection
 scans the period hour by hour, so cost grows with the window. For longer horizons,
-aggregate across multiple requests.
+aggregate across multiple requests — a year is four quarterly windows.
 
 #### Example
 
