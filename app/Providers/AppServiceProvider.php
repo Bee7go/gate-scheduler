@@ -53,8 +53,19 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Runs after auth.apikey, which attaches the key model to the request.
+        // Keyed by the key's id, never the plaintext secret: limiter keys are
+        // persisted in the cache store.
         RateLimiter::for('sync-now', function ($request) {
-            return Limit::perMinutes(2, 1)->by($request->header('X-Api-Key'));
+            $apiKey = $request->attributes->get('apiKey');
+
+            if (! $apiKey instanceof ApiKey) {
+                Log::error('throttle:sync-now used on a route without auth.apikey', ['path' => $request->path()]);
+
+                return Limit::perMinute(0); // Fail closed, as with throttle:api-key.
+            }
+
+            return Limit::perMinutes(2, 1)->by('sync-now:'.$apiKey->id);
         });
 
         RateLimiter::for('auth', function ($request) {

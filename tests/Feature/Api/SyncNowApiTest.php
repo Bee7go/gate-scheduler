@@ -5,7 +5,9 @@ namespace Tests\Feature\Api;
 use App\Models\ApiKey;
 use App\Services\Flights\FlightSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Testing\TestResponse;
 use Mockery;
 use Tests\TestCase;
@@ -35,6 +37,20 @@ class SyncNowApiTest extends TestCase
     {
         $this->postJson('/api/v1/system/sync-now')
             ->assertStatus(401);
+    }
+
+    public function test_rate_limiter_key_never_contains_the_plaintext_api_key(): void
+    {
+        $apiKey = ApiKey::where('key', hash('sha256', $this->plainKey))->firstOrFail();
+
+        $request = Request::create('/api/v1/system/sync-now', 'POST');
+        $request->headers->set('X-Api-Key', $this->plainKey);
+        $request->attributes->set('apiKey', $apiKey);
+
+        $limit = RateLimiter::limiter('sync-now')($request);
+
+        $this->assertSame('sync-now:'.$apiKey->id, $limit->key);
+        $this->assertStringNotContainsString($this->plainKey, (string) $limit->key);
     }
 
     public function test_triggers_sync_and_returns_summary(): void
