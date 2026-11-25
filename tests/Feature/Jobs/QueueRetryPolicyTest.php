@@ -8,6 +8,7 @@ use App\Models\Gate;
 use App\Services\Flights\FlightSyncService;
 use App\Services\Flights\OpenSkyCircuitBreaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
@@ -25,7 +26,7 @@ class QueueRetryPolicyTest extends TestCase
         $this->artisan('app:sync-flights')->assertExitCode(0);
 
         Queue::assertPushed(SyncFlightsJob::class, function (SyncFlightsJob $job) {
-            return $job->tries === 3;
+            return $job->tries === 3 && $job->trigger === 'command';
         });
     }
 
@@ -74,6 +75,38 @@ class QueueRetryPolicyTest extends TestCase
         $this->assertSame(3, $reportJob->tries);
         $this->assertSame(120, $reportJob->timeout);
         $this->assertSame([30, 120], $reportJob->backoff);
+    }
+
+    public function test_sync_flights_job_skips_when_a_sync_is_already_running(): void
+    {
+        Log::shouldReceive('info')
+            ->once()
+            ->with('queue.job.sync_flights.skipped', ['reason' => 'sync_already_in_progress']);
+
+        $lock = Cache::lock(FlightSyncService::LOCK_KEY, FlightSyncService::LOCK_SECONDS);
+        $this->assertTrue($lock->get());
+
+        try {
+            // Losing the race is a skip, not a failure: nothing throws,
+            // no run row is written, and the job completes successfully.
+            (new SyncFlightsJob)->handle(app(FlightSyncService::class));
+        } finally {
+            $lock->release();
+        }
+
+        $this->assertDatabaseCount('sync_runs', 0);
+    }
+
+    public function test_sync_lock_durations_keep_their_pecking_order(): void
+    {
+        $job = new SyncFlightsJob;
+
+        // The lock may never expire under a legally running job...
+        $this->assertLessThan(FlightSyncService::LOCK_SECONDS, $job->timeout);
+
+        // ...and a run outliving its lock gets a full extra lock-lifetime of
+        // grace before reconciliation declares it abandoned.
+        $this->assertLessThan(FlightSyncService::STALE_AFTER_SECONDS, FlightSyncService::LOCK_SECONDS);
     }
 
     public function test_sync_flights_job_logs_failure(): void

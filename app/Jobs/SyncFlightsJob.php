@@ -30,10 +30,15 @@ class SyncFlightsJob implements ShouldQueue
      */
     public array $backoff = [30, 120];
 
+    /**
+     * @param  string  $trigger  Which door queued this sync; recorded on the run.
+     */
+    public function __construct(public string $trigger = 'scheduled') {}
+
     public function handle(FlightSyncService $flightSyncService): void
     {
         try {
-            $summary = $flightSyncService->sync('scheduled');
+            $summary = $flightSyncService->sync($this->trigger);
         } catch (SyncInProgressException) {
             Log::info('queue.job.sync_flights.skipped', [
                 'reason' => 'sync_already_in_progress',

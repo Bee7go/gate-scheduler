@@ -15,7 +15,8 @@ class FlightSyncService
 
     /**
      * Comfortably longer than the job timeout (120s) so the lock can never
-     * expire while a sync is still legally running.
+     * expire while a sync is still legally running — and finite, so a crashed
+     * holder can never wedge the pipeline: the TTL is the dead-man's switch.
      */
     public const LOCK_SECONDS = 300;
 
@@ -56,9 +57,10 @@ class FlightSyncService
     /**
      * A run killed hard (worker timeout, crashed process) never reaches the
      * code that records its outcome, leaving it 'running' forever. We hold the
-     * lock here, so any 'running' row older than the lock lifetime is
-     * provably abandoned — close it out instead of letting /system/status
-     * report a phantom in-progress sync.
+     * lock here, so any 'running' row older than twice the lock lifetime is
+     * either dead or has long outlived its lock — in both cases it no longer
+     * owns the pipeline, so it is safe to close out instead of letting
+     * /system/status report a phantom in-progress sync.
      */
     private function reconcileAbandonedRuns(): void
     {

@@ -29,7 +29,7 @@ class SyncFlights extends Command
     public function handle(FlightSyncService $flightSyncService): int
     {
         if (! $this->option('now')) {
-            SyncFlightsJob::dispatch();
+            SyncFlightsJob::dispatch('command');
 
             $this->info('Flight sync job dispatched to queue');
 
