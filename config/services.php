@@ -61,6 +61,13 @@ return [
         'api_key_ttl_days' => env('AUTH_API_KEY_TTL_DAYS', 365),
         // Default requests/minute for API keys without their own rate_limit_per_minute.
         'key_rate_limit_per_minute' => env('API_KEY_RATE_LIMIT_PER_MINUTE', 60),
+        // Days an EXPIRED bearer token stays visible before it is pruned.
+        'token_prune_after_days' => env('AUTH_TOKEN_PRUNE_AFTER_DAYS', 7),
+    ],
+
+    'sync' => [
+        // Days a sync-run record is kept for /system/status history.
+        'run_retention_days' => env('SYNC_RUN_RETENTION_DAYS', 90),
     ],
 
 ];
