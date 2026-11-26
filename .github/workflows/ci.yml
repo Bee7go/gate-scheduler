@@ -50,6 +50,24 @@ jobs:
       - name: Run test suite
         run: php artisan test
 
+  security-audit:
+    name: Dependency security audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+          tools: composer:v2
+
+      - name: Audit Composer dependencies for known vulnerabilities
+        run: composer audit --locked
+
   openapi-drift:
     name: OpenAPI spec is up to date
     runs-on: ubuntu-latest

@@ -114,6 +114,37 @@ docker compose --env-file .env.production -f docker-compose.production.yml exec 
 
 The scheduler prunes failed jobs older than 14 days. Investigate a stale `last_successful_at`, a failed sync, or an open circuit breaker with `/api/v1/system/status` and the worker/scheduler logs.
 
+## Monitoring and Alerting
+
+What should page a human, at what threshold, and how to check it. All checks
+are driven by the API itself, so any uptime monitor (or a cron + curl) can run
+them.
+
+| Signal | Check | Page when | First response |
+|--------|-------|-----------|----------------|
+| App down | `GET /up` (no auth) | Non-200, 2 consecutive checks | `docker compose ps`, app container logs |
+| Scheduler/worker stalled | `GET /api/v1/system/health` | `503` (degraded), or `last_successful_sync` older than 10 minutes | Worker and scheduler container logs; `queue:failed` |
+| Upstream broken | `GET /api/v1/system/status` | `circuit_breaker` open for more than 30 minutes | Check OpenSky status and credentials; syncs degrade to cached data meanwhile |
+| Repeated sync failures | `GET /api/v1/system/status` | 3 consecutive runs `failed` | Inspect `failure_reason`; `abandoned_run` means a worker is being killed mid-sync (memory/timeout) |
+| Failed jobs piling up | `php artisan queue:failed` | More than 5 in an hour | Logs around the failures; retry only after fixing the cause |
+| Disk/backup | host monitoring | Backup older than 25 hours or disk above 85% | Run the backup script manually; prune Docker images |
+
+Log lines worth alerting on (all JSON, greppable by message): `flight.sync.reconciled_abandoned_runs` (a worker died mid-sync) and `throttle:api-key used on a route without auth.apikey` (a route misconfiguration that fails closed).
+
+## Data Retention
+
+What the database keeps and for how long. Pruning runs daily at 03:30 via
+`model:prune` on the scheduler container.
+
+| Data | Retention | Why |
+|------|-----------|-----|
+| Users, API keys | Until deleted by the owner | Account data; API keys expire after 1 year (`AUTH_API_KEY_TTL_DAYS`) but expired rows stay visible to their owner |
+| Bearer tokens | Pruned 7 days after expiry (`AUTH_TOKEN_PRUNE_AFTER_DAYS`) | Tokens live 1 hour; the grace period keeps them visible for audit |
+| Idempotency records | Pruned after the 24-hour replay window | Hold encrypted response bodies; kept no longer than replays need |
+| Sync runs | Pruned after 90 days (`SYNC_RUN_RETENTION_DAYS`) | A sync every 2 minutes is ~263k rows/year; 90 days of history is plenty for `/system/status` and trend analysis |
+| Failed jobs | Pruned after 14 days (`queue:prune-failed`) | Enough time to investigate and retry |
+| Flights, allocations, unavailabilities | Kept indefinitely | Operational history; export and archive externally if volume ever demands it |
+
 ## Backups and Restore
 
 Create a compressed PostgreSQL backup:

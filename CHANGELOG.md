@@ -10,6 +10,14 @@ See the [versioning policy](docs/API.md#versioning) for what a version promises 
 
 ### Added
 
+- A data-retention policy, enforced: sync-run history is pruned after 90 days
+  (`SYNC_RUN_RETENTION_DAYS`) and expired bearer tokens 7 days after expiry
+  (`AUTH_TOKEN_PRUNE_AFTER_DAYS`). The full retention matrix, a monitoring
+  runbook, and migration rules are documented in the deployment guide and
+  `docs/MIGRATIONS.md`.
+- `SECURITY.md` with private vulnerability reporting and a zero-downtime
+  API-key rotation runbook; a dependency security audit (`composer audit`)
+  runs in CI, with Dependabot keeping dependencies current.
 - A machine-readable `code` on every error the API defines (for example
   `validation_failed`, `insufficient_scope`, `rate_limited`,
   `method_not_allowed`), drawn from a documented catalog so clients can

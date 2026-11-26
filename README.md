@@ -28,7 +28,19 @@ The interesting part of this project is not the gate allocation — it is the re
 
 **Secrets are hashes.** Passwords are hashed with Argon2id (pre-existing bcrypt hashes upgrade transparently at login); Bearer tokens and API keys are stored as SHA-256 hashes and shown exactly once at creation. Authentication endpoints are rate limited by client IP, read from the fronting proxy's `X-Forwarded-For` header — and in the production topology the app port is reachable only through that proxy, so the header cannot be spoofed from outside.
 
-**Tested like it matters.** The suite covers authentication edge cases (expired keys, cross-user revocation, database failure), allocation strategy behavior, circuit-breaker transitions, queue retry policy, and an end-to-end flow from fetch to allocation. CI runs it on both SQLite and PostgreSQL 17, plus a code-style gate.
+**Tested like it matters.** The suite covers authentication edge cases (expired keys, cross-user revocation, database failure), allocation strategy behavior, circuit-breaker transitions, queue retry policy, and an end-to-end flow from fetch to allocation. CI runs it on both SQLite and PostgreSQL 17, plus a code-style gate and a dependency security audit.
+
+---
+
+## Roadmap and Non-Goals
+
+Deliberate choices, not omissions ([ADRs](docs/decisions/) record the reasoning):
+
+- **Webhooks are a non-goal for now.** Partners poll `GET /system/status` and the data endpoints; signed webhook delivery (retries, ordering, replay protection) is real surface area that this API's consumers haven't needed yet. If that changes, it ships spec-first like everything else.
+- **Multi-tenancy is designed but deferred** — see [ADR-0005](docs/decisions/0005-defer-multi-tenancy-but-design-it-now.md) and the [design doc](docs/DESIGN-multi-tenancy.md). The schema and auth model were shaped so the change stays additive.
+- **Scopes are deliberately coarse** (`read`, `write`, `sync`). Resource-granular scopes (`read:allocations`, …) are an additive upgrade when the resource surface grows enough to justify them.
+
+Operational policies live with the code: [SECURITY.md](SECURITY.md) (disclosure + key-rotation runbook), [data retention and monitoring](docs/DEPLOYMENT.md#monitoring-and-alerting), and [migration rules](docs/MIGRATIONS.md).
 
 ---
 
